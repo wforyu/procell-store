@@ -67,6 +67,13 @@ class DatabaseSeeder extends Seeder
             ['key' => 'mail_from_name', 'value' => ''],
             ['key' => 'rajaongkir_api_key', 'value' => ''],
             ['key' => 'store_origin_city', 'value' => ''],
+            ['key' => 'points_earn_rate', 'value' => '1000'],
+            ['key' => 'points_redeem_rate', 'value' => '100'],
+            ['key' => 'points_referral_bonus', 'value' => '500'],
+            ['key' => 'min_points_redeem', 'value' => '100'],
+            ['key' => 'midtrans_server_key', 'value' => ''],
+            ['key' => 'midtrans_client_key', 'value' => ''],
+            ['key' => 'midtrans_is_production', 'value' => '0'],
         ];
 
         foreach ($settings as $setting) {
@@ -78,6 +85,7 @@ class DatabaseSeeder extends Seeder
             BankAccountSeeder::class,
             PageSeeder::class,
             CouponSeeder::class,
+            RoleSeeder::class,
         ]);
     }
 }

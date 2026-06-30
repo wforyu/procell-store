@@ -12,6 +12,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Setting;
 use App\Models\StockMovement;
+use App\Services\LoyaltyService;
+use App\Services\MidtransService;
 use App\Services\RajaOngkirService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -27,7 +29,9 @@ class CheckoutController extends Controller
 
     public function index()
     {
-        $cart = Cart::where('user_id', auth()->id())->with('items.product.primaryImage')->first();
+        $cart = auth()->check()
+            ? Cart::where('user_id', auth()->id())->with('items.product.primaryImage')->first()
+            : Cart::where('session_id', session()->get('cart_session_id'))->with('items.product.primaryImage')->first();
 
         if (! $cart || $cart->items->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Keranjang belanja kosong!');
@@ -39,17 +43,24 @@ class CheckoutController extends Controller
         $apiKey = Setting::getValue('rajaongkir_api_key');
         $rajaOngkirConfigured = ! empty($apiKey) && $origin > 0;
 
-        if (! $rajaOngkirConfigured) {
-            $couriers = static::FALLBACK_COURIERS;
-        } else {
-            $couriers = static::FALLBACK_COURIERS;
-        }
+        $couriers = static::FALLBACK_COURIERS;
 
         $totalWeight = $cart->items->sum(fn ($item) => ($item->product->weight ?? 250) * $item->quantity);
 
         $appliedCoupon = session('applied_coupon');
 
-        return view('store.checkout.index', compact('cart', 'bankAccounts', 'couriers', 'appliedCoupon', 'rajaOngkirConfigured', 'totalWeight'));
+        $isGuest = ! auth()->check();
+        $loyalty = null;
+        $pointsBalance = 0;
+        $maxRedeemPoints = 0;
+
+        if (! $isGuest) {
+            $loyalty = app(LoyaltyService::class);
+            $pointsBalance = auth()->user()->points_balance;
+            $maxRedeemPoints = min($pointsBalance, (int) floor(($cart->total * 0.5) / $loyalty->getRedeemRate()));
+        }
+
+        return view('store.checkout.index', compact('cart', 'bankAccounts', 'couriers', 'appliedCoupon', 'rajaOngkirConfigured', 'totalWeight', 'isGuest', 'loyalty', 'pointsBalance', 'maxRedeemPoints'));
     }
 
     public function courierRates(Request $request, RajaOngkirService $rajaOngkir)
@@ -75,17 +86,30 @@ class CheckoutController extends Controller
 
     public function process(Request $request, RajaOngkirService $rajaOngkir)
     {
-        $request->validate([
+        $isGuest = ! auth()->check();
+
+        $rules = [
             'shipping_address' => 'required|string',
             'courier' => 'required|string|in:jne,jnt,sicepat,ninja',
             'courier_service' => 'required|string',
-            'payment_method' => 'required|string|in:bank_transfer',
+            'payment_method' => 'required|string|in:bank_transfer,midtrans',
             'bank_account_id' => 'required_if:payment_method,bank_transfer|exists:bank_accounts,id',
             'destination_city' => 'nullable|integer|min:1',
             'notes' => 'nullable|string',
-        ]);
+            'points_to_use' => 'nullable|integer|min:0',
+        ];
 
-        $cart = Cart::where('user_id', auth()->id())->with('items.product')->first();
+        if ($isGuest) {
+            $rules['guest_name'] = 'required|string|max:255';
+            $rules['guest_email'] = 'required|email|max:255';
+            $rules['guest_phone'] = 'required|string|max:20';
+        }
+
+        $request->validate($rules);
+
+        $cart = $isGuest
+            ? Cart::where('session_id', session()->get('cart_session_id'))->with('items.product')->first()
+            : Cart::where('user_id', auth()->id())->with('items.product')->first();
 
         if (! $cart || $cart->items->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Keranjang belanja kosong!');
@@ -124,19 +148,53 @@ class CheckoutController extends Controller
             }
         }
 
-        $customer = Customer::firstOrCreate(
-            ['user_id' => auth()->id()],
-            [
-                'name' => auth()->user()->name,
-                'email' => auth()->user()->email,
-                'phone' => auth()->user()->phone,
+        $pointsUsed = 0;
+        $pointsDiscount = 0;
+
+        if (! $isGuest) {
+            $loyalty = app(LoyaltyService::class);
+            $pointsBalance = auth()->user()->points_balance;
+            $requestedPoints = (int) $request->points_to_use;
+
+            if ($requestedPoints > 0 && $pointsBalance >= $requestedPoints) {
+                $maxPoints = (int) floor(($cart->total * 0.5) / $loyalty->getRedeemRate());
+                $pointsToUse = min($requestedPoints, $maxPoints, $pointsBalance);
+
+                if ($pointsToUse >= $loyalty->getMinRedeem()) {
+                    $pointsUsed = $pointsToUse;
+                    $pointsDiscount = $loyalty->calculateRedeemDiscount($pointsToUse, (int) $cart->total);
+                }
+            }
+        }
+
+        $user = null;
+        $userId = null;
+
+        if ($isGuest) {
+            $customer = Customer::create([
+                'user_id' => null,
+                'name' => $request->guest_name,
+                'email' => $request->guest_email,
+                'phone' => $request->guest_phone,
                 'address' => $request->shipping_address,
-            ]
-        );
+            ]);
+        } else {
+            $user = auth()->user();
+            $userId = $user->id;
+            $customer = Customer::firstOrCreate(
+                ['user_id' => $userId],
+                [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'address' => $request->shipping_address,
+                ]
+            );
+        }
 
         $order = Order::create([
             'order_number' => 'ORD-'.date('Ymd').'-'.strtoupper(Str::random(6)),
-            'user_id' => auth()->id(),
+            'user_id' => $userId,
             'customer_id' => $customer->id,
             'status' => 'pending',
             'total_amount' => $cart->total,
@@ -148,6 +206,8 @@ class CheckoutController extends Controller
             'shipping_cost' => $shippingCost,
             'coupon_id' => $couponId,
             'discount_amount' => $discountAmount,
+            'points_used' => $pointsUsed,
+            'points_discount' => $pointsDiscount,
         ]);
 
         foreach ($cart->items as $item) {
@@ -165,7 +225,7 @@ class CheckoutController extends Controller
 
             StockMovement::create([
                 'product_id' => $product->id,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'type' => 'out',
                 'quantity' => $item->quantity,
                 'stock_before' => $stockBefore,
@@ -182,7 +242,7 @@ class CheckoutController extends Controller
 
             CouponUsage::create([
                 'coupon_id' => $couponId,
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'order_id' => $order->id,
                 'used_at' => now(),
             ]);
@@ -193,18 +253,47 @@ class CheckoutController extends Controller
         $cart->items()->delete();
         $cart->delete();
 
+        if ($isGuest) {
+            $guestOrders = session('guest_orders', []);
+            $guestOrders[] = $order->id;
+            session(['guest_orders' => $guestOrders]);
+        }
+
+        if ($request->payment_method === 'midtrans') {
+            $midtrans = app(MidtransService::class);
+
+            if ($midtrans->isConfigured()) {
+                try {
+                    $redirectUrl = $midtrans->getRedirectUrl($order);
+
+                    return redirect()->away($redirectUrl);
+                } catch (\Exception $e) {
+                    return redirect()->route('checkout.success', $order)
+                        ->with('error', 'Gagal terhubung ke Midtrans. Silakan hubungi admin.');
+                }
+            }
+        }
+
         return redirect()->route('checkout.success', $order);
     }
 
     public function success(Order $order)
     {
-        if ($order->user_id !== auth()->id()) {
-            abort(403);
+        if (auth()->check()) {
+            if ($order->user_id !== auth()->id()) {
+                abort(403);
+            }
+        } else {
+            $guestOrders = session('guest_orders', []);
+            if (! in_array($order->id, $guestOrders)) {
+                abort(403);
+            }
         }
 
         $bankAccounts = BankAccount::active()->get();
+        $isGuest = ! auth()->check();
 
-        return view('store.checkout.success', compact('order', 'bankAccounts'));
+        return view('store.checkout.success', compact('order', 'bankAccounts', 'isGuest'));
     }
 
     public static function getCourierLabel($courier): string

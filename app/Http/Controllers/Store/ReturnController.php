@@ -68,7 +68,7 @@ class ReturnController extends Controller
             $retur->images()->create(['image' => $path]);
         }
 
-        $admins = User::where('is_admin', true)->get();
+        $admins = User::role(['Super Admin', 'Stok', 'Keuangan'])->get();
         Notification::make()
             ->title('Retur Baru Diajukan')
             ->body('Retur #'.$retur->return_number.' oleh '.auth()->user()->name.' menunggu diproses.')

@@ -94,15 +94,14 @@
                     </div>
 
                     <div class="mt-6 space-y-3">
-                        @auth
-                            <a href="{{ route('checkout.index') }}" class="btn-primary w-full">
-                                <i class="fas fa-shopping-bag"></i> Checkout
+                        <a href="{{ route('checkout.index') }}" class="btn-primary w-full">
+                            <i class="fas fa-shopping-bag"></i> Checkout
+                        </a>
+                        @guest
+                            <a href="{{ route('login') }}" class="btn-outline w-full text-sm">
+                                <i class="fas fa-sign-in-alt"></i> Login (simpan riwayat pesanan)
                             </a>
-                        @else
-                            <a href="{{ route('login') }}" class="btn-primary w-full">
-                                <i class="fas fa-sign-in-alt"></i> Login untuk Checkout
-                            </a>
-                        @endauth
+                        @endguest
                         <a href="{{ route('products.index') }}" class="btn-light w-full">
                             <i class="fas fa-arrow-left"></i> Lanjut Belanja
                         </a>

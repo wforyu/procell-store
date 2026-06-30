@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\Admin\ExportController;
+use App\Http\Controllers\Admin\PosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Store\CartController;
 use App\Http\Controllers\Store\CheckoutController;
 use App\Http\Controllers\Store\CouponController;
 use App\Http\Controllers\Store\HomeController;
+use App\Http\Controllers\Store\MidtransController;
 use App\Http\Controllers\Store\OrderController;
 use App\Http\Controllers\Store\PageController;
 use App\Http\Controllers\Store\ProductController;
@@ -38,15 +40,21 @@ Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.a
 Route::post('/cart/update/{item}', [CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove/{item}', [CartController::class, 'remove'])->name('cart.remove');
 
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/courier-rates', [CheckoutController::class, 'courierRates'])->name('checkout.courier-rates');
+
+Route::post('/coupon/apply', [CouponController::class, 'apply'])->name('coupon.apply');
+Route::post('/coupon/remove', [CouponController::class, 'remove'])->name('coupon.remove');
+
+Route::post('/midtrans/notification', [MidtransController::class, 'notification'])->name('midtrans.notification');
+Route::get('/midtrans/finish/{order}', [MidtransController::class, 'finish'])->name('midtrans.finish');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-    Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
-    Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
-    Route::get('/checkout/courier-rates', [CheckoutController::class, 'courierRates'])->name('checkout.courier-rates');
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
@@ -62,9 +70,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/products/{product}/quick-buy', [ProductController::class, 'quickBuy'])->name('products.quick-buy');
 
-    Route::post('/coupon/apply', [CouponController::class, 'apply'])->name('coupon.apply');
-    Route::post('/coupon/remove', [CouponController::class, 'remove'])->name('coupon.remove');
-
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->middleware(['verified'])->name('dashboard');
@@ -72,8 +77,16 @@ Route::middleware(['auth'])->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::middleware(['auth'])->prefix('admin')->name('admin.export.')->group(function () {
-    Route::get('export/orders/csv', [ExportController::class, 'ordersCsv'])->name('orders.csv');
-    Route::get('export/products/csv', [ExportController::class, 'productsCsv'])->name('products.csv');
-    Route::get('export/suppliers/csv', [ExportController::class, 'suppliersCsv'])->name('suppliers.csv');
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('export/orders/csv', [ExportController::class, 'ordersCsv'])->name('export.orders.csv');
+    Route::get('export/products/csv', [ExportController::class, 'productsCsv'])->name('export.products.csv');
+    Route::get('export/suppliers/csv', [ExportController::class, 'suppliersCsv'])->name('export.suppliers.csv');
+
+    Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+    Route::get('/pos/search', [PosController::class, 'search'])->name('pos.search');
+    Route::post('/pos/add', [PosController::class, 'add'])->name('pos.add');
+    Route::post('/pos/update', [PosController::class, 'update'])->name('pos.update');
+    Route::post('/pos/remove', [PosController::class, 'remove'])->name('pos.remove');
+    Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
+    Route::get('/pos/receipt/{order}', [PosController::class, 'receipt'])->name('pos.receipt');
 });

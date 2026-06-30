@@ -24,6 +24,11 @@ class Order extends Model
         'shipped_at',
         'coupon_id',
         'discount_amount',
+        'points_used',
+        'points_discount',
+        'points_earned',
+        'midtrans_transaction_id',
+        'midtrans_payment_type',
     ];
 
     protected function casts(): array
@@ -32,6 +37,7 @@ class Order extends Model
             'total_amount' => 'decimal:2',
             'shipping_cost' => 'decimal:2',
             'discount_amount' => 'decimal:2',
+            'points_discount' => 'integer',
             'payment_verified_at' => 'datetime',
             'shipped_at' => 'datetime',
             'received_at' => 'datetime',
@@ -65,6 +71,11 @@ class Order extends Model
 
     public function getGrandTotalAttribute()
     {
-        return $this->total_amount + $this->shipping_cost;
+        return ($this->total_amount + $this->shipping_cost) - $this->discount_amount - $this->points_discount;
+    }
+
+    public function getSubTotalAttribute()
+    {
+        return $this->total_amount - $this->discount_amount - $this->points_discount;
     }
 }

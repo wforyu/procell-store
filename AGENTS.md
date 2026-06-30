@@ -2,9 +2,9 @@
 
 ## Ringkasan Proyek
 
-ProCell Store adalah toko *online* sparepart & aksesoris HP berbasis **Laravel 12** dengan admin panel **Filament v5**, *storefront* Blade, dan sistem auth **Laravel Breeze**. Target pasar Indonesia: 100% Bahasa Indonesia, kurir lokal (JNE, J&T, SiCepat, Ninja), pembayaran transfer bank (Mandiri, BCA, BRI).
+ProCell Store adalah toko *online* sparepart & aksesoris HP berbasis **Laravel 12** dengan admin panel **Filament v5**, *storefront* Blade, dan sistem auth **Laravel Breeze**. Target pasar Indonesia: 100% Bahasa Indonesia, kurir lokal (JNE, J&T, SiCepat, Ninja), pembayaran transfer bank (Mandiri, BCA, BRI) + **Midtrans** (Kartu Kredit, Virtual Account, Indomaret, Alfamart, QRIS, GoPay, ShopeePay, dll).
 
-Dikembangkan secara bertahap mulai dari *scaffolding* Laravel Breeze, instalasi & konfigurasi Filament v5, desain database (19+ tabel), migrasi & seeder, *storefront* lengkap (home, katalog, detail produk, keranjang, *checkout*, pesanan, retur), admin panel (CRUD semua entitas, dashboard dengan grafik, pengaturan toko), SEO (sitemap XML, Schema.org, meta tags, Open Graph, JSON-LD), fitur *wishlist*, notifikasi email ke customer + notifikasi *database* ke admin, serta modul manajemen stok & pemasok (*purchase order*).
+Dikembangkan secara bertahap mulai dari *scaffolding* Laravel Breeze, instalasi & konfigurasi Filament v5, desain database (20+ tabel), migrasi & seeder, *storefront* lengkap (home, katalog, detail produk, keranjang, *checkout* + guest checkout, pesanan, retur), admin panel (CRUD semua entitas, dashboard dengan grafik, pengaturan toko, **POS Interface**), SEO (sitemap XML, Schema.org, meta tags, Open Graph, JSON-LD), fitur *wishlist*, notifikasi email ke customer + notifikasi *database* ke admin, modul manajemen stok & pemasok (*purchase order*), **multi-role admin (Super Admin, Stok, Keuangan, Kasir)** via Spatie Permission, integrasi **Midtrans payment gateway**, serta **guest checkout** tanpa registrasi.
 
 Proyek ini juga menyertakan berbagai *bug fix* dan *workaround* khusus untuk Filament v5 + PHP 8.2 yang terdokumentasi di bawah.
 
@@ -41,6 +41,8 @@ Proyek ini juga menyertakan berbagai *bug fix* dan *workaround* khusus untuk Fil
 | **Framework** | Laravel 12 (PHP 8.2.12) — Blade templating, Eloquent ORM, Queue, Notification |
 | **Admin Panel** | Filament v5.6.7 — CRUD, dashboard, widget, grafik, notifikasi database |
 | **Auth Customer** | Laravel Breeze (Blade) — login, register, *forgot/reset password*, verifikasi email |
+| **Multi-Role Admin** | Spatie Laravel Permission v6 — Super Admin, Stok, Keuangan, Kasir |
+| **Payment Gateway** | Midtrans PHP SDK v2.6 — Snap (Kartu Kredit, VA, Convenience Store, QRIS, E-Wallet) |
 | **Database** | MySQL via XAMPP (`procell_store`, root tanpa password, port 3306) |
 | **Testing** | SQLite `:memory:` (otomatis di `phpunit.xml`) |
 | **Frontend Build** | Vite + Tailwind CSS 4 |
@@ -59,7 +61,7 @@ Proyek ini juga menyertakan berbagai *bug fix* dan *workaround* khusus untuk Fil
 | `product_images` | Gambar tambahan produk (`is_primary` untuk *thumbnail*) |
 | `carts` | Keranjang belanja (`user_id` atau `session_id`) |
 | `cart_items` | Item dalam keranjang (`cart_id`, `product_id`, `quantity`) |
-| `orders` | Pesanan — `order_number`, `user_id`, `status`, `total_amount`, `shipping_cost`, `courier`, `courier_service`, `tracking_number`, `payment_method`, `payment_proof`, `payment_verified_at`, `shipped_at`, `received_at`, `shipping_address`, `notes`, `coupon_id`, `discount_amount` |
+| `orders` | Pesanan — `order_number`, `user_id`, `status`, `total_amount`, `shipping_cost`, `courier`, `courier_service`, `tracking_number`, `payment_method`, `payment_proof`, `payment_verified_at`, `shipped_at`, `received_at`, `shipping_address`, `notes`, `coupon_id`, `discount_amount`, `midtrans_transaction_id`, `midtrans_payment_type` |
 | `order_items` | Item dalam pesanan (`order_id`, `product_id`, `quantity`, `price`, `subtotal`) |
 | `stock_movements` | Riwayat pergerakan stok (`type`: in/out, `quantity`, `note`, `user_id`, `product_id`) |
 | `banners` | Banner slider halaman utama (*image*, *link*, *title*, *is_active*, *sort_order*) |
@@ -147,11 +149,13 @@ C:\Users\pro021\procell-store\
 │   │       └── StockMovementChart.php — Grafik pergerakan stok
 │   ├── Http/Controllers/
 │   │   ├── Admin/
-│   │   │   └── OrderExportController.php — Export CSV pesanan
+│   │   │   ├── OrderExportController.php — Export CSV pesanan
+│   │   │   └── PosController.php      — POS interface (search, add, update, remove, checkout, receipt)
 │   │   └── Store/
 │   │       ├── CartController.php     — Keranjang (guest via session, login via user_id)
-│   │       ├── CheckoutController.php — Checkout + kurir + kupon + pembayaran
+│   │       ├── CheckoutController.php — Checkout + kurir + kupon + pembayaran + guest checkout
 │   │       ├── HomeController.php     — Beranda (produk unggulan, kategori, banner)
+│   │       ├── MidtransController.php — Midtrans finish + notification handler
 │   │       ├── OrderController.php    — Daftar/detail pesanan, konfirmasi terima, upload bukti bayar, notifikasi
 │   │       ├── ProductController.php  — Katalog + detail + cari produk
 │   │       ├── ReturnController.php   — Pengajuan retur + upload foto (notifikasi admin)
@@ -184,6 +188,8 @@ C:\Users\pro021\procell-store\
 │   ├── Notifications/
 │   │   ├── OrderStatusChanged.php     — Notifikasi email ke customer saat status pesanan berubah
 │   │   └── ReturnStatusChanged.php    — Notifikasi email ke customer saat retur disetujui/ditolak
+│   ├── Services/
+│   │   └── MidtransService.php        — Snap token, redirect URL, notification handler
 │   └── Providers/
 │       ├── AppServiceProvider.php     — View composer untuk cart count + footer pages
 │       └── Filament/
@@ -228,8 +234,8 @@ C:\Users\pro021\procell-store\
 │   │   ├── cart/
 │   │   │   └── index.blade.php        — Halaman keranjang (list item, quantity, total, coupon)
 │   │   ├── checkout/
-│   │   │   ├── index.blade.php        — Checkout (alamat, pilih kurir ongkir realtime, pilih bank, ringkasan)
-│   │   │   └── success.blade.php      — Sukses (info bank, langkah selanjutnya)
+│   │   │   ├── index.blade.php        — Checkout (alamat, pilih kurir ongkir realtime, pilih bank/Midtrans, ringkasan)
+│   │   │   └── success.blade.php      — Sukses (info bank/Midtrans, langkah selanjutnya, prompt register guest)
 │   │   ├── orders/
 │   │   │   ├── index.blade.php        — Daftar pesanan customer
 │   │   │   └── show.blade.php         — Detail pesanan (upload bukti bayar, konfirmasi terima, retur, button wishlist)
@@ -242,6 +248,12 @@ C:\Users\pro021\procell-store\
 │   │       ├── footer.blade.php       — Footer (pages dinamis dari settings)
 │   │       ├── mega-menu.blade.php    — Mega menu kategori
 │   │       └── mobile-sidebar.blade.php — Sidebar mobile + wishlist link
+│   ├── admin/
+│   │   └── pos/
+│   │       ├── index.blade.php          — POS interface (product grid, cart panel, checkout)
+│   │       ├── _cart.blade.php          — POS partial: cart items list
+│   │       ├── _products.blade.php      — POS partial: product cards grid
+│   │       └── receipt.blade.php        — POS printable receipt
 │   └── filament/
 │       ├── orders/
 │       │   └── payment-proof-modal.blade.php — Modal bukti transfer di admin
@@ -304,15 +316,24 @@ Keranjang → List item + quantity control + subtotal + kupon
 ### 2. *Checkout* & Pesanan
 
 ```
-Checkout:
+Checkout (Auth):
 1. Isi alamat pengiriman (jika belum lengkap)
 2. Pilih KURIR: JNE (REG/YES/OKE), J&T (REG/YES), SiCepat (REG/BEST), Ninja (REG/2DAY)
    → Ongkir otomatis kalkulasi + total berubah REALTIME via Alpine.js + RajaOngkir API (fallback ke statis jika API tidak dikonfigurasi)
-3. Pilih PEMBAYARAN: Transfer Bank
-   → Pilih bank tujuan (Mandiri/BCA/BRI)
+3. Pilih PEMBAYARAN:
+   ├─ Transfer Bank → pilih bank tujuan (Mandiri/BCA/BRI)
+   └─ Midtrans (Kartu Kredit, Virtual Account, Indomaret, Alfamart, QRIS, GoPay, ShopeePay)
 4. Kupon diskon (opsional) → masukkan kode
 5. Total = Subtotal + Ongkir - Diskon
 6. Klik "Buat Pesanan" → stok berkurang + stock_movement tercatat
+   → Jika Midtrans: redirect ke Snap payment page
+   → Jika Transfer Bank: pending menunggu upload bukti bayar
+
+Checkout (Guest):
+1. Isi NAMA + EMAIL + TELEPON + alamat pengiriman
+2-6. Sama seperti auth checkout
+7. Order tersimpan di session `guest_orders`
+8. Setelah daftar/login → order otomatis tertaut ke akun baru
 
 Flow Status Pesanan:
   pending (Menunggu Pembayaran)
@@ -373,6 +394,9 @@ Persediaan:
                            Status: pending → sent → received (tambah stok + stock_movement) → cancelled
 
 Transaksi:
+  ├─ POS                → POS interface (product grid, cart, customer, payment via cash/bank_transfer)
+  │                       → Order number prefix `POS-`, status langsung `completed`
+  │                       → Stok otomatis berkurang + stock_movement tercatat
   ├─ Pesanan            → Lihat/ubah status, filter (status), aksi per-item:
   │                       ├─ Konfirmasi Bayar (notif email customer)
   │                       ├─ Proses (notif email customer)
@@ -426,7 +450,8 @@ Pengaturan:
 | Auth admin (Filament) | ✅ Selesai | canAccessPanel via isAdmin |
 | Banner slider | ✅ Selesai | CRUD admin + tampil di home |
 | Cart (guest + logged in) | ✅ Selesai | Session-based untuk guest, user_id untuk login |
-| Checkout | ✅ Selesai | Alamat, kurir (4), ongkir realtime Alpine + RajaOngkir API, bank transfer, kupon |
+| Checkout | ✅ Selesai | Alamat, kurir (4), ongkir realtime Alpine + RajaOngkir API, bank transfer, Midtrans, kupon |
+| Guest checkout | ✅ Selesai | Checkout tanpa registrasi, order tertaut setelah daftar |
 | RajaOngkir API | ✅ Selesai | Service class, AJAX endpoint, fallback statis jika API tidak dikonfigurasi |
 | Coupon diskon | ✅ Selesai | Percentage/fixed, min order, max uses, expiry |
 | Customer management | ✅ Selesai | Read-only admin, detail + order history |
@@ -457,6 +482,10 @@ Pengaturan:
 | SMTP Konfigurasi | ✅ Selesai | Admin bisa setting email (host, port, username, password, enkripsi, dari) tanpa edit `.env` |
 | Stock management | ✅ Selesai | Stock movement log, otomatis saat order/PO received |
 | Supplier management | ✅ Selesai | CRUD pemasok |
+| Guest checkout | ✅ Selesai | Checkout tanpa registrasi, order tertaut setelah daftar |
+| Midtrans payment | ✅ Selesai | Snap redirect (Kartu Kredit, VA, Convenience Store, QRIS, E-Wallet) |
+| Multi-role admin | ✅ Selesai | Super Admin, Stok, Keuangan, Kasir (Spatie Permission) |
+| POS (Point of Sale) | ✅ Selesai | Interface kasir, stok auto-decrement, order completed langsung |
 | Testing | ✅ Selesai | Feature + Unit tests via SQLite memory |
 | Wishlist | ✅ Selesai | Toggle + daftar + link di topbar, dropdown, sidebar mobile |
 
@@ -571,6 +600,9 @@ Pengaturan:
 - `MAIL_MAILER=log` di `.env` sebagai default. Admin bisa konfigurasi SMTP via Pengaturan Toko → Konfigurasi Email (SMTP) tanpa perlu edit `.env`
 - `QUEUE_CONNECTION=database` — notifikasi diproses via queue
 - RajaOngkir: admin bisa setting API Key + ID kota asal di Pengaturan Toko → RajaOngkir. Jika tidak dikonfigurasi, ongkir menggunakan tarif statis (fallback)
+- Midtrans: admin setting Server Key + Client Key + mode production di Pengaturan Toko → Midtrans. Callback URL: `/midtrans/notification` (POST) dan `/midtrans/finish/{order}` (GET)
+- POS: tersedia di `/admin/pos`, hanya untuk role Kasir + Super Admin + Stok + Keuangan. Kasir tidak punya akses ke Filament panel, langsung redirect ke POS
+- Guest checkout: order disimpan di session `guest_orders`. Setelah registrasi, order otomatis tertaut ke akun baru berdasarkan email
 
 ---
 
@@ -581,27 +613,32 @@ Prioritas tinggi:
 2. ~~**Integrasi RajaOngkir / Binderbyte**~~ ✅ Selesai — Hitung ongkir real-time via RajaOngkir API (fallback ke statis jika API tidak dikonfigurasi)
 
 Prioritas menengah:
-3. **Multi-admin & roles** — Spatie Laravel Permission untuk membedakan akses admin (super admin, stok, keuangan)
+3. ~~**Multi-admin & roles**~~ ✅ Selesai — Spatie Laravel Permission untuk membedakan akses admin (super admin, stok, keuangan, kasir)
 4. **Loyalty points + referral system** — Poin belanja + kode referral
-5. **Guest checkout** — Checkout tanpa registrasi
+5. ~~**Guest checkout**~~ ✅ Selesai — Checkout tanpa registrasi
 
 Prioritas rendah:
-6. **POS (*Point of Sale*) interface** — Antarmuka kasir untuk toko offline
-7. **Integrasi payment gateway** — Midtrans / Xendit selain transfer bank
+6. ~~**POS (*Point of Sale*) interface**~~ ✅ Selesai — Antarmuka kasir untuk toko offline
+7. ~~**Integrasi payment gateway**~~ ✅ Selesai — Midtrans Snap (Kartu Kredit, VA, Convenience Store, QRIS, E-Wallet)
 8. **Notifikasi WhatsApp** — Menggunakan API Fonnte / Wablas untuk konfirmasi pesanan via WA
 
 ---
 
 ## Catatan Git & Deployment
 
-**Git tidak terinstal di lingkungan ini.** Untuk push ke GitHub:
-1. Install Git dari https://git-scm.com/download/win
-2. `git init`
-3. `git add .`
-4. `git commit -m "Initial commit: ProCell Store Laravel 12 + Filament v5"`
-5. Buat repo di GitHub, lalu:
+Untuk push ke GitHub:
+1. `git init`
+2. `git add .`
+3. `git commit -m "Initial commit: ProCell Store Laravel 12 + Filament v5"`
+4. Buat repo di GitHub, lalu:
    ```
    git remote add origin https://github.com/username/procell-store.git
    git branch -M main
    git push -u origin main
+   ```
+5. Atau jika sudah terhubung ke remote:
+   ```
+   git add -A
+   git commit -m "Pesan commit"
+   git push
    ```

@@ -13,7 +13,9 @@ class ReturnStatusChanged extends Notification implements ShouldQueue
     use Queueable;
 
     public Returns $return;
+
     public string $oldStatus;
+
     public string $newStatus;
 
     public function __construct(Returns $return, string $oldStatus, string $newStatus)

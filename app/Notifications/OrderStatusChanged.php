@@ -13,7 +13,9 @@ class OrderStatusChanged extends Notification implements ShouldQueue
     use Queueable;
 
     public Order $order;
+
     public string $oldStatus;
+
     public string $newStatus;
 
     public function __construct(Order $order, string $oldStatus, string $newStatus)

@@ -32,6 +32,12 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
+        <div>
+            <x-input-label for="referral_code" :value="__('Kode Referral (opsional)')" />
+            <x-text-input prefix='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>' id="referral_code" class="block mt-1 w-full" type="text" name="referral_code" :value="old('referral_code')" autocomplete="off" placeholder="Contoh: REF-ABC123" />
+            <x-input-error :messages="$errors->get('referral_code')" class="mt-2" />
+        </div>
+
         <x-primary-button>
             {{ __('Daftar') }}
         </x-primary-button>

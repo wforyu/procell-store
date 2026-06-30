@@ -8,11 +8,12 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
         'name',
@@ -22,6 +23,7 @@ class User extends Authenticatable implements FilamentUser
         'address',
         'avatar',
         'is_admin',
+        'referred_by',
     ];
 
     protected $hidden = [
@@ -70,11 +72,59 @@ class User extends Authenticatable implements FilamentUser
 
     public function isAdmin(): bool
     {
-        return $this->is_admin;
+        return $this->hasRole('Super Admin');
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->isAdmin();
+        return $this->hasAnyRole(['Super Admin', 'Stok', 'Keuangan']);
+    }
+
+    public function loyaltyPoint()
+    {
+        return $this->hasOne(LoyaltyPoint::class);
+    }
+
+    public function loyaltyPointTransactions()
+    {
+        return $this->hasMany(LoyaltyPointTransaction::class);
+    }
+
+    public function referralCode()
+    {
+        return $this->hasOne(ReferralCode::class);
+    }
+
+    public function referredBy()
+    {
+        return $this->belongsTo(User::class, 'referred_by');
+    }
+
+    public function referrals()
+    {
+        return $this->hasMany(User::class, 'referred_by');
+    }
+
+    public function getPointsBalanceAttribute(): int
+    {
+        return $this->loyaltyPoint?->points ?? 0;
+    }
+
+    public function initReferralCode(): void
+    {
+        if (! $this->referralCode) {
+            ReferralCode::create([
+                'user_id' => $this->id,
+                'code' => ReferralCode::generateUniqueCode(),
+            ]);
+        }
+
+        if (! $this->loyaltyPoint) {
+            LoyaltyPoint::create([
+                'user_id' => $this->id,
+                'points' => 0,
+                'lifetime_points' => 0,
+            ]);
+        }
     }
 }

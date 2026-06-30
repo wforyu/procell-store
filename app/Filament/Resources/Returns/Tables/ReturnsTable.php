@@ -89,7 +89,7 @@ class ReturnsTable
                             ->title('Retur Disetujui')
                             ->body('Retur #'.$record->return_number.' pada pesanan #'.$record->order->order_number.' berhasil disetujui.')
                             ->success()
-                            ->sendToDatabase(User::where('is_admin', true)->get());
+                            ->sendToDatabase(User::role(['Super Admin', 'Stok', 'Keuangan'])->get());
                     })
                     ->visible(fn (Returns $record) => $record->status === 'pending'),
                 Action::make('reject')
@@ -118,7 +118,7 @@ class ReturnsTable
                             ->title('Retur Ditolak')
                             ->body('Retur #'.$record->return_number.' pada pesanan #'.$record->order->order_number.' ditolak.')
                             ->danger()
-                            ->sendToDatabase(User::where('is_admin', true)->get());
+                            ->sendToDatabase(User::role(['Super Admin', 'Stok', 'Keuangan'])->get());
                     })
                     ->visible(fn (Returns $record) => $record->status === 'pending'),
                 Action::make('view_images')

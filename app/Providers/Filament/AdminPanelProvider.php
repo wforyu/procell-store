@@ -12,6 +12,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -345,6 +346,15 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Konten'),
                 NavigationGroup::make()
                     ->label('Pengaturan'),
+                NavigationGroup::make()
+                    ->label('Sistem'),
+            ])
+            ->navigationItems([
+                NavigationItem::make('POS')
+                    ->url(fn (): string => url('/admin/pos'))
+                    ->icon('heroicon-o-calculator')
+                    ->group('Transaksi')
+                    ->sort(1),
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

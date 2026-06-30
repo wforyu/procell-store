@@ -24,7 +24,9 @@ class CouponController extends Controller
             ]);
         }
 
-        $cart = Cart::where('user_id', auth()->id())->with('items')->first();
+        $cart = auth()->check()
+            ? Cart::where('user_id', auth()->id())->with('items')->first()
+            : Cart::where('session_id', session()->get('cart_session_id'))->with('items')->first();
 
         if (! $cart || $cart->items->isEmpty()) {
             return response()->json([

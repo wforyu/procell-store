@@ -56,7 +56,7 @@ class OrderController extends Controller
 
         $order->user->notify(new OrderStatusChanged($order, 'pending', 'waiting_confirmation'));
 
-        $admins = User::where('is_admin', true)->get();
+        $admins = User::role(['Super Admin', 'Stok', 'Keuangan'])->get();
         Notification::make()
             ->title('Bukti Pembayaran Diupload')
             ->body('Pesanan #'.$order->order_number.' oleh '.$order->user->name.' menunggu konfirmasi pembayaran.')

@@ -89,11 +89,29 @@
             </ul>
         </div>
 
+        {{-- Guest Registration Prompt --}}
+        @if($isGuest)
+        <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 mb-8 text-left">
+            <h3 class="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                <i class="fas fa-user-plus text-amber-500"></i> Simpan Pesanan Anda
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">
+                Buat akun untuk melacak pesanan, mendapatkan poin loyalitas, dan kemudahan belanja berikutnya.
+                Gunakan email <strong>{{ $order->customer->email }}</strong> saat mendaftar agar pesanan Anda tertaut.
+            </p>
+            <a href="{{ route('register') }}" class="btn-primary inline-flex items-center gap-2">
+                <i class="fas fa-user-plus"></i> Buat Akun Sekarang
+            </a>
+        </div>
+        @endif
+
         {{-- Actions --}}
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            @if(!$isGuest)
             <a href="{{ route('orders.show', $order) }}" class="btn-primary">
                 <i class="fas fa-clipboard-list"></i> Detail Pesanan
             </a>
+            @endif
             <a href="{{ route('products.index') }}" class="btn-outline">
                 <i class="fas fa-store"></i> Belanja Lagi
             </a>

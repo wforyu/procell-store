@@ -63,6 +63,10 @@ class ManageSettings extends Page
             'mail_from_name' => Setting::getValue('mail_from_name'),
             'rajaongkir_api_key' => Setting::getValue('rajaongkir_api_key'),
             'store_origin_city' => Setting::getValue('store_origin_city'),
+            'points_earn_rate' => Setting::getValue('points_earn_rate', '1000'),
+            'points_redeem_rate' => Setting::getValue('points_redeem_rate', '100'),
+            'points_referral_bonus' => Setting::getValue('points_referral_bonus', '500'),
+            'min_points_redeem' => Setting::getValue('min_points_redeem', '100'),
         ]);
     }
 
@@ -151,6 +155,42 @@ class ManageSettings extends Page
                             ->label('ID Kota Asal')
                             ->numeric()
                             ->helperText('ID kota toko Anda di RajaOngkir. Contoh: 152 (Jakarta Pusat), 153 (Jakarta Barat). Cek di dokumentasi RajaOngkir'),
+                    ])->columns(2),
+
+                Section::make('Midtrans')
+                    ->description('Konfigurasi payment gateway Midtrans. Daftar di https://midtrans.com untuk mendapatkan Server Key & Client Key')
+                    ->schema([
+                        TextInput::make('midtrans_server_key')
+                            ->label('Server Key')
+                            ->password()
+                            ->helperText('Server Key dari akun Midtrans Anda (jangan dibagikan!)'),
+                        TextInput::make('midtrans_client_key')
+                            ->label('Client Key')
+                            ->helperText('Client Key dari akun Midtrans Anda'),
+                        Toggle::make('midtrans_is_production')
+                            ->label('Mode Produksi')
+                            ->helperText('Aktifkan jika sudah siap produksi. Nonaktif = menggunakan sandbox'),
+                    ])->columns(2),
+
+                Section::make('Poin & Referral')
+                    ->description('Atur sistem poin loyalitas dan bonus referral')
+                    ->schema([
+                        TextInput::make('points_earn_rate')
+                            ->label('Rate Perolehan Poin')
+                            ->numeric()
+                            ->helperText('Setiap Rp berapa pelanggan mendapat 1 poin? Contoh: 1000 = Rp 1.000 per poin'),
+                        TextInput::make('points_redeem_rate')
+                            ->label('Nilai Tukar Poin')
+                            ->numeric()
+                            ->helperText('1 poin = Rp berapa saat ditukar? Contoh: 100 = Rp 100 per poin'),
+                        TextInput::make('points_referral_bonus')
+                            ->label('Bonus Referral')
+                            ->numeric()
+                            ->helperText('Poin yang didapat pengundang saat teman mendaftar via kode referral'),
+                        TextInput::make('min_points_redeem')
+                            ->label('Minimal Tukar Poin')
+                            ->numeric()
+                            ->helperText('Minimal poin yang bisa ditukarkan. Contoh: 100'),
                     ])->columns(2),
 
                 Section::make('Kontak')

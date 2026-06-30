@@ -14,7 +14,8 @@
 - Detail produk dengan gallery gambar, harga, stok, brand
 - Keranjang belanja (guest via session, login via user_id)
 - Checkout dengan pilihan kurir (JNE, J&T, SiCepat, Ninja) + ongkir realtime
-- Pembayaran transfer bank (Mandiri, BCA, BRI)
+- Pembayaran transfer bank (Mandiri, BCA, BRI) + **Midtrans** (Kartu Kredit, VA, Convenience Store, QRIS, E-Wallet)
+- **Guest checkout** tanpa registrasi
 - Kupon diskon (percentage / fixed)
 - Wishlist produk favorit
 
@@ -34,11 +35,12 @@
 ### ⚙️ Admin Panel (Filament v5)
 - **Katalog**: CRUD Kategori & Produk
 - **Persediaan**: Audit stok, Pemasok, Purchase Order
-- **Transaksi**: CRUD Pesanan + Export CSV, Retur
+- **Transaksi**: **POS Interface**, CRUD Pesanan + Export CSV, Retur
 - **Konten**: Banner slider, Pengeluaran
 - **Pelanggan**: Read-only + riwayat pesanan
 - **Promo**: Kupon diskon
-- **Pengaturan**: Rekening bank, Dashboard grafik, Pengaturan toko (nama, kontak, jam operasional, flash sale)
+- **Sistem**: Manajemen User & Role (Super Admin, Stok, Keuangan, Kasir)
+- **Pengaturan**: Rekening bank, Dashboard grafik, Pengaturan toko (nama, kontak, jam operasional, flash sale, Midtrans, RajaOngkir, SMTP)
 
 ### 🔔 Notifikasi
 - Email ke customer setiap perubahan status pesanan
@@ -98,7 +100,7 @@ composer dev
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | `admin@procell.com` | `admin123` |
+| Admin (Super Admin) | `admin@procell.com` | `admin123` |
 | Customer | `customer@procell.com` | `customer123` |
 
 ---
@@ -127,12 +129,12 @@ Semua test menggunakan SQLite `:memory:` — aman dijalankan kapan saja.
 
 ## 🗺️ Roadmap
 
-- [ ] Konfigurasi SMTP di ManageSettings
-- [ ] Integrasi RajaOngkir / Binderbyte ongkir realtime
-- [ ] Multi-admin & roles (Spatie Permission)
+- [x] Konfigurasi SMTP di ManageSettings
+- [x] Integrasi RajaOngkir ongkir realtime
+- [x] Multi-admin & roles (Spatie Permission)
 - [ ] Loyalty points & referral system
-- [ ] Guest checkout
-- [ ] Integrasi Midtrans / Xendit
+- [x] Guest checkout
+- [x] Integrasi Midtrans payment gateway
 - [ ] Notifikasi WhatsApp
 
 ---

@@ -92,13 +92,12 @@
                     </div>
 
                     <div class="mt-6 space-y-3">
-                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->guard()->check()): ?>
-                            <a href="<?php echo e(route('checkout.index')); ?>" class="btn-primary w-full">
-                                <i class="fas fa-shopping-bag"></i> Checkout
-                            </a>
-                        <?php else: ?>
-                            <a href="<?php echo e(route('login')); ?>" class="btn-primary w-full">
-                                <i class="fas fa-sign-in-alt"></i> Login untuk Checkout
+                        <a href="<?php echo e(route('checkout.index')); ?>" class="btn-primary w-full">
+                            <i class="fas fa-shopping-bag"></i> Checkout
+                        </a>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->guard()->guest()): ?>
+                            <a href="<?php echo e(route('login')); ?>" class="btn-outline w-full text-sm">
+                                <i class="fas fa-sign-in-alt"></i> Login (simpan riwayat pesanan)
                             </a>
                         <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <a href="<?php echo e(route('products.index')); ?>" class="btn-light w-full">

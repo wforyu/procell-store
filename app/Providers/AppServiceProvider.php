@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Cart;
+use App\Models\Order;
 use App\Models\Page;
 use App\Models\Setting;
+use App\Observers\OrderObserver;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -18,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Order::observe(OrderObserver::class);
+
         if (Schema::hasTable('settings')) {
             try {
                 $mailHost = Setting::getValue('mail_host');
