@@ -1,59 +1,142 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+  <h1>🔧 ProCell Store</h1>
+  <p><strong>Toko Online Sparepart & Aksesoris HP</strong></p>
+  <p>Laravel 12 · Filament v5 · Laravel Breeze · Alpine.js · Tailwind CSS 4</p>
+</div>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+---
 
-## About Laravel
+## ✨ Fitur
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 🛍️ Storefront
+- Beranda dengan banner slider, kategori unggulan, flash sale, produk terbaru
+- Katalog produk dengan filter kategori & pencarian
+- Detail produk dengan gallery gambar, harga, stok, brand
+- Keranjang belanja (guest via session, login via user_id)
+- Checkout dengan pilihan kurir (JNE, J&T, SiCepat, Ninja) + ongkir realtime
+- Pembayaran transfer bank (Mandiri, BCA, BRI)
+- Kupon diskon (percentage / fixed)
+- Wishlist produk favorit
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 📦 Manajemen Pesanan
+- Upload bukti transfer oleh customer
+- Konfirmasi pembayaran oleh admin
+- Tracking pengiriman (input kurir + no resi)
+- Konfirmasi pesanan diterima
+- Riwayat status pesanan lengkap (pending → waiting_confirmation → processing → shipped → completed)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🔄 Retur Barang
+- Pengajuan retur oleh customer (alasan + foto bukti)
+- Setujui / tolak oleh admin
+- Notifikasi email ke customer
+- Notifikasi database ke admin
 
-## Learning Laravel
+### ⚙️ Admin Panel (Filament v5)
+- **Katalog**: CRUD Kategori & Produk
+- **Persediaan**: Audit stok, Pemasok, Purchase Order
+- **Transaksi**: CRUD Pesanan + Export CSV, Retur
+- **Konten**: Banner slider, Pengeluaran
+- **Pelanggan**: Read-only + riwayat pesanan
+- **Promo**: Kupon diskon
+- **Pengaturan**: Rekening bank, Dashboard grafik, Pengaturan toko (nama, kontak, jam operasional, flash sale)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 🔔 Notifikasi
+- Email ke customer setiap perubahan status pesanan
+- Email ke customer saat retur disetujui / ditolak
+- Notifikasi database ke admin saat customer upload bukti bayar atau ajukan retur
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 🔍 SEO
+- Meta tags dinamis (title, description, Open Graph)
+- Sitemap XML otomatis (`/sitemap.xml`)
+- Schema.org JSON-LD (Organization, BreadcrumbList, Product)
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🚀 Cara Install
 
-### Premium Partners
+### Prasyarat
+- PHP 8.2+
+- Composer
+- Node.js & NPM
+- MySQL (via XAMPP / Laragon / dll)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Langkah-langkah
 
-## Contributing
+```bash
+# Clone repositori
+git clone https://github.com/wforyu/procell-store.git
+cd procell-store
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Install dependencies PHP
+composer install
 
-## Code of Conduct
+# Copy environment
+copy .env.example .env
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Generate key
+php artisan key:generate
 
-## Security Vulnerabilities
+# Install dependensi frontend
+npm install
+npm run build
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Setup database
+# Buat database MySQL bernama procell_store
+# Lalu edit .env (DB_DATABASE=procell_store, DB_USERNAME=root, DB_PASSWORD=)
 
-## License
+# Jalankan migrasi & seeder
+php artisan migrate --seed
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Buat storage link
+php artisan storage:link
+
+# Jalankan dev server
+composer dev
+```
+
+### Akun Default
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@procell.com` | `admin123` |
+| Customer | `customer@procell.com` | `customer123` |
+
+---
+
+## 🧪 Testing
+
+```bash
+composer test
+```
+
+Semua test menggunakan SQLite `:memory:` — aman dijalankan kapan saja.
+
+---
+
+## 🐛 Bug Fixes & Workarounds
+
+| Issue | Solusi |
+|-------|--------|
+| `Class "Filament\Forms\Components\Section" not found` | Ganti import ke `Filament\Schemas\Components\Section` |
+| PHP 8.2 `$navigationGroup` fatal error | Hapus properti, gunakan `getNavigationGroup(): string` |
+| Duplicate `@php` block tidak dikompilasi | Gabung ke satu blok `@php` |
+| JSON-LD `{}` konflik Livewire Blade | Gunakan `json_encode()` dalam `@php` |
+| `config:cache` override env phpunit.xml | Selalu `config:clear` sebelum test |
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Konfigurasi SMTP di ManageSettings
+- [ ] Integrasi RajaOngkir / Binderbyte ongkir realtime
+- [ ] Multi-admin & roles (Spatie Permission)
+- [ ] Loyalty points & referral system
+- [ ] Guest checkout
+- [ ] Integrasi Midtrans / Xendit
+- [ ] Notifikasi WhatsApp
+
+---
+
+## 📄 Lisensi
+
+Hak cipta © 2026 — **ProCell Store**
