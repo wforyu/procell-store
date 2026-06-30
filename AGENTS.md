@@ -307,7 +307,7 @@ Keranjang → List item + quantity control + subtotal + kupon
 Checkout:
 1. Isi alamat pengiriman (jika belum lengkap)
 2. Pilih KURIR: JNE (REG/YES/OKE), J&T (REG/YES), SiCepat (REG/BEST), Ninja (REG/2DAY)
-   → Ongkir otomatis kalkulasi + total berubah REALTIME via Alpine.js
+   → Ongkir otomatis kalkulasi + total berubah REALTIME via Alpine.js + RajaOngkir API (fallback ke statis jika API tidak dikonfigurasi)
 3. Pilih PEMBAYARAN: Transfer Bank
    → Pilih bank tujuan (Mandiri/BCA/BRI)
 4. Kupon diskon (opsional) → masukkan kode
@@ -426,7 +426,8 @@ Pengaturan:
 | Auth admin (Filament) | ✅ Selesai | canAccessPanel via isAdmin |
 | Banner slider | ✅ Selesai | CRUD admin + tampil di home |
 | Cart (guest + logged in) | ✅ Selesai | Session-based untuk guest, user_id untuk login |
-| Checkout | ✅ Selesai | Alamat, kurir (4), ongkir realtime Alpine, bank transfer, kupon |
+| Checkout | ✅ Selesai | Alamat, kurir (4), ongkir realtime Alpine + RajaOngkir API, bank transfer, kupon |
+| RajaOngkir API | ✅ Selesai | Service class, AJAX endpoint, fallback statis jika API tidak dikonfigurasi |
 | Coupon diskon | ✅ Selesai | Percentage/fixed, min order, max uses, expiry |
 | Customer management | ✅ Selesai | Read-only admin, detail + order history |
 | Dashboard admin | ✅ Selesai | StatsOverview, RevenueChart, StockMovementChart |
@@ -569,6 +570,7 @@ Pengaturan:
 - `FILESYSTEM_DISK=public`
 - `MAIL_MAILER=log` di `.env` sebagai default. Admin bisa konfigurasi SMTP via Pengaturan Toko → Konfigurasi Email (SMTP) tanpa perlu edit `.env`
 - `QUEUE_CONNECTION=database` — notifikasi diproses via queue
+- RajaOngkir: admin bisa setting API Key + ID kota asal di Pengaturan Toko → RajaOngkir. Jika tidak dikonfigurasi, ongkir menggunakan tarif statis (fallback)
 
 ---
 
@@ -576,7 +578,7 @@ Pengaturan:
 
 Prioritas tinggi:
 1. ~~**Konfigurasi SMTP di ManageSettings**~~ ✅ Selesai — Admin bisa setting email langsung dari panel tanpa edit `.env`
-2. **Integrasi RajaOngkir / Binderbyte** — Hitung ongkir real-time dari API (saat ini ongkir masih statis)
+2. ~~**Integrasi RajaOngkir / Binderbyte**~~ ✅ Selesai — Hitung ongkir real-time via RajaOngkir API (fallback ke statis jika API tidak dikonfigurasi)
 
 Prioritas menengah:
 3. **Multi-admin & roles** — Spatie Laravel Permission untuk membedakan akses admin (super admin, stok, keuangan)
