@@ -57,6 +57,14 @@ class DatabaseSeeder extends Seeder
             ['key' => 'store_is_closed', 'value' => 'false'],
             ['key' => 'store_closed_message', 'value' => 'Toko sedang libur, kembali buka Senin pukul 08:00'],
             ['key' => 'flash_sale_text', 'value' => 'Flash Sale Akhir Pekan!'],
+            ['key' => 'mail_mailer', 'value' => 'log'],
+            ['key' => 'mail_host', 'value' => ''],
+            ['key' => 'mail_port', 'value' => '587'],
+            ['key' => 'mail_username', 'value' => ''],
+            ['key' => 'mail_password', 'value' => ''],
+            ['key' => 'mail_encryption', 'value' => 'tls'],
+            ['key' => 'mail_from_address', 'value' => ''],
+            ['key' => 'mail_from_name', 'value' => ''],
         ];
 
         foreach ($settings as $setting) {

@@ -452,6 +452,7 @@ Pengaturan:
 | Seeder data sample | ✅ Selesai | 45 produk, 8 kategori, 6 brand, 3 bank, 1 kupon |
 | Settings toko | ✅ Selesai | ManageSettings page (nama, kontak, jam, flash sale, dll) |
 | SEO | ✅ Selesai | Meta tags, OG, sitemap XML, Schema.org JSON-LD |
+| SMTP Konfigurasi | ✅ Selesai | Admin bisa setting email (host, port, username, password, enkripsi, dari) tanpa edit `.env` |
 | Stock management | ✅ Selesai | Stock movement log, otomatis saat order/PO received |
 | Supplier management | ✅ Selesai | CRUD pemasok |
 | Testing | ✅ Selesai | Feature + Unit tests via SQLite memory |
@@ -564,7 +565,7 @@ Pengaturan:
 - Total harga pesanan = `total_amount` (produk) + `shipping_cost` (ongkir) via `$order->grand_total`
 - `APP_URL=http://localhost:8000`
 - `FILESYSTEM_DISK=public`
-- `MAIL_MAILER=log` di `.env` (email tidak terkirim sungguhan sampai admin konfigurasi SMTP)
+- `MAIL_MAILER=log` di `.env` sebagai default. Admin bisa konfigurasi SMTP via Pengaturan Toko → Konfigurasi Email (SMTP) tanpa perlu edit `.env`
 - `QUEUE_CONNECTION=database` — notifikasi diproses via queue
 
 ---
@@ -572,7 +573,7 @@ Pengaturan:
 ## *Roadmap* / Selanjutnya
 
 Prioritas tinggi:
-1. **Konfigurasi SMTP di ManageSettings** — Tambah field `mail_host`, `mail_port`, `mail_username`, `mail_password`, `mail_encryption`, `mail_from_address`, `mail_from_name` agar admin bisa mengirim email sungguhan tanpa edit `.env`
+1. ~~**Konfigurasi SMTP di ManageSettings**~~ ✅ Selesai — Admin bisa setting email langsung dari panel tanpa edit `.env`
 2. **Integrasi RajaOngkir / Binderbyte** — Hitung ongkir real-time dari API (saat ini ongkir masih statis)
 
 Prioritas menengah:

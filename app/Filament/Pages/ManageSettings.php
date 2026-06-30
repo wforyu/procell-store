@@ -53,6 +53,14 @@ class ManageSettings extends Page
             'footer_text' => Setting::getValue('footer_text'),
             'footer_description' => Setting::getValue('footer_description'),
             'whatsapp_number' => Setting::getValue('whatsapp_number'),
+            'mail_mailer' => Setting::getValue('mail_mailer', 'smtp'),
+            'mail_host' => Setting::getValue('mail_host'),
+            'mail_port' => Setting::getValue('mail_port'),
+            'mail_username' => Setting::getValue('mail_username'),
+            'mail_password' => Setting::getValue('mail_password'),
+            'mail_encryption' => Setting::getValue('mail_encryption', 'tls'),
+            'mail_from_address' => Setting::getValue('mail_from_address'),
+            'mail_from_name' => Setting::getValue('mail_from_name'),
         ]);
     }
 
@@ -95,6 +103,40 @@ class ManageSettings extends Page
                     ->schema([
                         TextInput::make('footer_text')->label('Teks Footer'),
                         Textarea::make('footer_description')->label('Deskripsi Footer'),
+                    ])->columns(2),
+
+                Section::make('Konfigurasi Email (SMTP)')
+                    ->description('Atur pengiriman email. Isi semua field jika ingin menggunakan SMTP. Biarkan kosong untuk menggunakan MAIL_MAILER=log dari .env')
+                    ->schema([
+                        TextInput::make('mail_mailer')
+                            ->label('Mailer')
+                            ->default('smtp')
+                            ->helperText('Driver pengirim email. Default: smtp'),
+                        TextInput::make('mail_host')
+                            ->label('SMTP Host')
+                            ->helperText('Contoh: smtp.gmail.com, smtp.sendgrid.net, mail.yourdomain.com'),
+                        TextInput::make('mail_port')
+                            ->label('SMTP Port')
+                            ->numeric()
+                            ->helperText('Contoh: 587 (TLS), 465 (SSL), 25 (non-encrypted)'),
+                        TextInput::make('mail_username')
+                            ->label('SMTP Username')
+                            ->helperText('Alamat email atau username akun SMTP Anda'),
+                        TextInput::make('mail_password')
+                            ->label('SMTP Password')
+                            ->password()
+                            ->helperText('Password akun SMTP. Untuk Gmail gunakan App Password'),
+                        TextInput::make('mail_encryption')
+                            ->label('Enkripsi')
+                            ->default('tls')
+                            ->helperText('Contoh: tls (port 587), ssl (port 465). Kosongkan jika tidak pakai'),
+                        TextInput::make('mail_from_address')
+                            ->label('Alamat Email Pengirim')
+                            ->email()
+                            ->helperText('Alamat email yang muncul sebagai pengirim'),
+                        TextInput::make('mail_from_name')
+                            ->label('Nama Pengirim')
+                            ->helperText('Nama pengirim yang tampil di inbox penerima. Default: Nama Toko'),
                     ])->columns(2),
 
                 Section::make('Kontak')
