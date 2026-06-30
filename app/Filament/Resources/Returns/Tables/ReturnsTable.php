@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Returns\Tables;
 
 use App\Models\Returns;
+use App\Models\User;
+use App\Notifications\ReturnStatusChanged;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -74,17 +76,20 @@ class ReturnsTable
                     ->modalHeading('Setujui Retur')
                     ->modalDescription('Retur akan disetujui. Apakah Anda yakin?')
                     ->action(function (array $data, Returns $record) {
+                        $oldStatus = $record->status;
                         $record->update([
                             'status' => 'approved',
                             'admin_note' => $data['admin_note'] ?? null,
                             'reviewed_at' => now(),
                         ]);
 
+                        $record->user->notify(new ReturnStatusChanged($record, $oldStatus, 'approved'));
+
                         Notification::make()
                             ->title('Retur Disetujui')
-                            ->body('Retur #'.$record->return_number.' pada pesanan #'.$record->order->order_number.' telah disetujui.')
+                            ->body('Retur #'.$record->return_number.' pada pesanan #'.$record->order->order_number.' berhasil disetujui.')
                             ->success()
-                            ->sendToDatabase($record->user);
+                            ->sendToDatabase(User::where('is_admin', true)->get());
                     })
                     ->visible(fn (Returns $record) => $record->status === 'pending'),
                 Action::make('reject')
@@ -100,17 +105,20 @@ class ReturnsTable
                     ->modalHeading('Tolak Retur')
                     ->modalDescription('Apakah Anda yakin ingin menolak retur ini?')
                     ->action(function (array $data, Returns $record) {
+                        $oldStatus = $record->status;
                         $record->update([
                             'status' => 'rejected',
                             'admin_note' => $data['admin_note'] ?? null,
                             'reviewed_at' => now(),
                         ]);
 
+                        $record->user->notify(new ReturnStatusChanged($record, $oldStatus, 'rejected'));
+
                         Notification::make()
                             ->title('Retur Ditolak')
-                            ->body('Retur #'.$record->return_number.' pada pesanan #'.$record->order->order_number.' ditolak dengan alasan: '.($data['admin_note'] ?? ''))
+                            ->body('Retur #'.$record->return_number.' pada pesanan #'.$record->order->order_number.' ditolak.')
                             ->danger()
-                            ->sendToDatabase($record->user);
+                            ->sendToDatabase(User::where('is_admin', true)->get());
                     })
                     ->visible(fn (Returns $record) => $record->status === 'pending'),
                 Action::make('view_images')
