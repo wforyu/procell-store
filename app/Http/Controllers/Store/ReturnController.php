@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Returns;
 use App\Models\User;
+use App\Notifications\ReturnSubmitted;
 use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -73,6 +74,7 @@ class ReturnController extends Controller
             ->body('Retur #'.$retur->return_number.' oleh '.auth()->user()->name.' menunggu diproses.')
             ->icon('heroicon-o-arrow-uturn-left')
             ->sendToDatabase($admins);
+        $admins->each->notify(new ReturnSubmitted($retur));
 
         return redirect()->route('orders.show', $order)
             ->with('success', 'Pengajuan retur berhasil dikirim. Admin akan memprosesnya.');

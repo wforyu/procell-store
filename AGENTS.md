@@ -447,7 +447,7 @@ Pengaturan:
 | Produk (storefront) | ✅ Selesai | Katalog, detail, search, filter kategori |
 | Purchase Order | ✅ Selesai | PO ke supplier, received → auto tambah stok |
 | Queue | ✅ Selesai | Database driver untuk notifikasi |
-| Retur (admin) | ✅ Selesai | Setujui/tolak + lihat foto + notifikasi |
+| Retur (admin) | ✅ Selesai | Setujui/tolak + lihat foto + notifikasi email ke customer + database ke admin |
 | Retur (customer) | ✅ Selesai | Ajukan retur + upload foto + notifikasi admin |
 | Seeder data sample | ✅ Selesai | 45 produk, 8 kategori, 6 brand, 3 bank, 1 kupon |
 | Settings toko | ✅ Selesai | ManageSettings page (nama, kontak, jam, flash sale, dll) |

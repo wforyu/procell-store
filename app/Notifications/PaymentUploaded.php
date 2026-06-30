@@ -2,53 +2,44 @@
 
 namespace App\Notifications;
 
+use App\Models\Order;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class PaymentUploaded extends Notification
+class PaymentUploaded extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct()
+    public Order $order;
+
+    public function __construct(Order $order)
     {
-        //
+        $this->order = $order;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    public function via($notifiable): array
     {
         return ['mail'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable): MailMessage
     {
         return (new MailMessage)
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
-            ->line('Thank you for using our application!');
+            ->subject('Bukti Pembayaran — Pesanan #'.$this->order->order_number)
+            ->greeting('Halo '.$notifiable->name.'!')
+            ->line('Customer '.$this->order->user->name.' telah mengupload bukti pembayaran untuk pesanan #'.$this->order->order_number.'.')
+            ->line('Total Pesanan: Rp '.number_format($this->order->grand_total, 0, ',', '.'))
+            ->action('Lihat Detail Pesanan', url('/admin/orders/'.$this->order->id.'/edit'))
+            ->line('Silakan konfirmasi pembayaran di panel admin.');
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    public function toArray($notifiable): array
     {
         return [
-            //
+            'order_id' => $this->order->id,
+            'order_number' => $this->order->order_number,
         ];
     }
 }

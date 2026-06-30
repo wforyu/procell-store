@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
 use App\Notifications\OrderStatusChanged;
+use App\Notifications\PaymentUploaded;
 use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
 
@@ -61,6 +62,7 @@ class OrderController extends Controller
             ->body('Pesanan #'.$order->order_number.' oleh '.$order->user->name.' menunggu konfirmasi pembayaran.')
             ->icon('heroicon-o-currency-dollar')
             ->sendToDatabase($admins);
+        $admins->each->notify(new PaymentUploaded($order));
 
         return back()->with('success', 'Bukti pembayaran berhasil diupload. Menunggu konfirmasi admin.');
     }
