@@ -61,6 +61,8 @@ class ManageSettings extends Page
             'mail_encryption' => Setting::getValue('mail_encryption', 'tls'),
             'mail_from_address' => Setting::getValue('mail_from_address'),
             'mail_from_name' => Setting::getValue('mail_from_name'),
+            'rajaongkir_api_key' => Setting::getValue('rajaongkir_api_key'),
+            'store_origin_city' => Setting::getValue('store_origin_city'),
         ]);
     }
 
@@ -137,6 +139,18 @@ class ManageSettings extends Page
                         TextInput::make('mail_from_name')
                             ->label('Nama Pengirim')
                             ->helperText('Nama pengirim yang tampil di inbox penerima. Default: Nama Toko'),
+                    ])->columns(2),
+
+                Section::make('RajaOngkir')
+                    ->description('Konfigurasi API ongkos kirim real-time dari RajaOngkir. Daftar di https://rajaongkir.com untuk mendapatkan API Key')
+                    ->schema([
+                        TextInput::make('rajaongkir_api_key')
+                            ->label('RajaOngkir API Key')
+                            ->helperText('API Key dari akun RajaOngkir Anda (Starter/Basic/Pro)'),
+                        TextInput::make('store_origin_city')
+                            ->label('ID Kota Asal')
+                            ->numeric()
+                            ->helperText('ID kota toko Anda di RajaOngkir. Contoh: 152 (Jakarta Pusat), 153 (Jakarta Barat). Cek di dokumentasi RajaOngkir'),
                     ])->columns(2),
 
                 Section::make('Kontak')

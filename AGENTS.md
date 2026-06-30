@@ -440,6 +440,7 @@ Pengaturan:
 | Kupon diskon | ✅ Selesai | Apply di checkout + admin CRUD |
 | Migrasi database | ✅ Selesai | 20+ tabel lengkap dengan relasi |
 | Notifikasi email customer | ✅ Selesai | OrderStatusChanged + ReturnStatusChanged (via queue) |
+| Notifikasi email admin | ✅ Selesai | PaymentUploaded + ReturnSubmitted (via queue) |
 | Notifikasi database admin | ✅ Selesai | Upload bayar, retur baru (Filament Notification) |
 | Pesanan (admin) | ✅ Selesai | CRUD + actions + filter + export |
 | Pesanan (customer) | ✅ Selesai | Daftar, detail, upload bayar, konfirmasi terima |
@@ -517,6 +518,7 @@ Pengaturan:
 ### Notifikasi
 - Customer: hanya `mail` *channel* — tidak punya Filament bell
 - Admin: `Filament\Notifications\Notification::make()->sendToDatabase()` — database-only
+- Admin juga dapet email via `PaymentUploaded` & `ReturnSubmitted`
 - Semua notifikasi implement `ShouldQueue` & `Queueable` untuk performa
 
 ---

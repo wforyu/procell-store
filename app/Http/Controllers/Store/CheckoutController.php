@@ -10,13 +10,15 @@ use App\Models\CouponUsage;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Setting;
 use App\Models\StockMovement;
+use App\Services\RajaOngkirService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
-    const COURIERS = [
+    const FALLBACK_COURIERS = [
         'jne' => ['name' => 'JNE', 'services' => ['REG' => 12000, 'YES' => 25000, 'OKE' => 8000]],
         'jnt' => ['name' => 'J&T', 'services' => ['REG' => 11000, 'YES' => 22000]],
         'sicepat' => ['name' => 'SiCepat', 'services' => ['REG' => 13000, 'BEST' => 28000]],
@@ -32,14 +34,46 @@ class CheckoutController extends Controller
         }
 
         $bankAccounts = BankAccount::active()->get();
-        $couriers = static::COURIERS;
+
+        $origin = (int) Setting::getValue('store_origin_city', '0');
+        $apiKey = Setting::getValue('rajaongkir_api_key');
+        $rajaOngkirConfigured = ! empty($apiKey) && $origin > 0;
+
+        if (! $rajaOngkirConfigured) {
+            $couriers = static::FALLBACK_COURIERS;
+        } else {
+            $couriers = static::FALLBACK_COURIERS;
+        }
+
+        $totalWeight = $cart->items->sum(fn ($item) => ($item->product->weight ?? 250) * $item->quantity);
 
         $appliedCoupon = session('applied_coupon');
 
-        return view('store.checkout.index', compact('cart', 'bankAccounts', 'couriers', 'appliedCoupon'));
+        return view('store.checkout.index', compact('cart', 'bankAccounts', 'couriers', 'appliedCoupon', 'rajaOngkirConfigured', 'totalWeight'));
     }
 
-    public function process(Request $request)
+    public function courierRates(Request $request, RajaOngkirService $rajaOngkir)
+    {
+        $request->validate([
+            'destination' => 'required|integer',
+            'weight' => 'required|integer|min:1',
+        ]);
+
+        $origin = (int) Setting::getValue('store_origin_city', '0');
+        if (! $rajaOngkir->isConfigured() || $origin <= 0) {
+            return response()->json(['couriers' => static::FALLBACK_COURIERS]);
+        }
+
+        $couriers = $rajaOngkir->getAllCosts($origin, $request->destination, $request->weight);
+
+        if (empty($couriers)) {
+            return response()->json(['couriers' => static::FALLBACK_COURIERS]);
+        }
+
+        return response()->json(['couriers' => $couriers]);
+    }
+
+    public function process(Request $request, RajaOngkirService $rajaOngkir)
     {
         $request->validate([
             'shipping_address' => 'required|string',
@@ -47,6 +81,7 @@ class CheckoutController extends Controller
             'courier_service' => 'required|string',
             'payment_method' => 'required|string|in:bank_transfer',
             'bank_account_id' => 'required_if:payment_method,bank_transfer|exists:bank_accounts,id',
+            'destination_city' => 'nullable|integer|min:1',
             'notes' => 'nullable|string',
         ]);
 
@@ -56,15 +91,24 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('error', 'Keranjang belanja kosong!');
         }
 
-        // Validate courier service
-        $courierData = static::COURIERS[$request->courier] ?? null;
-        if (! $courierData || ! isset($courierData['services'][$request->courier_service])) {
+        $shippingCost = 0;
+        $origin = (int) Setting::getValue('store_origin_city', '0');
+        $destination = (int) $request->destination_city;
+        if ($rajaOngkir->isConfigured() && $origin > 0 && $destination > 0) {
+            $totalWeight = $cart->items->sum(fn ($item) => ($item->product->weight ?? 250) * $item->quantity);
+            $couriers = $rajaOngkir->getAllCosts($origin, $destination, $totalWeight);
+            $shippingCost = $couriers[$request->courier]['services'][$request->courier_service]['cost'] ?? 0;
+        } else {
+            $courierData = static::FALLBACK_COURIERS[$request->courier] ?? null;
+            if ($courierData && isset($courierData['services'][$request->courier_service])) {
+                $shippingCost = $courierData['services'][$request->courier_service];
+            }
+        }
+
+        if ($shippingCost <= 0) {
             return back()->withErrors(['courier_service' => 'Layanan kurir tidak valid.']);
         }
 
-        $shippingCost = $courierData['services'][$request->courier_service];
-
-        // Handle applied coupon
         $discountAmount = 0;
         $couponId = null;
 
@@ -132,7 +176,6 @@ class CheckoutController extends Controller
             ]);
         }
 
-        // Record coupon usage if applied
         if ($couponId) {
             $coupon = Coupon::find($couponId);
             $coupon->increment('used_count');
@@ -166,6 +209,6 @@ class CheckoutController extends Controller
 
     public static function getCourierLabel($courier): string
     {
-        return static::COURIERS[$courier]['name'] ?? $courier;
+        return static::FALLBACK_COURIERS[$courier]['name'] ?? $courier;
     }
 }

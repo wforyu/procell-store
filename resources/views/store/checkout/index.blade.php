@@ -58,8 +58,15 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">No. Telepon</label>
                             <input type="text" value="{{ auth()->user()->phone ?? '-' }}" readonly class="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 text-gray-500 text-sm">
                         </div>
+                        <div>
+                            <label for="destination_city" class="block text-sm font-medium text-gray-700 mb-1.5">ID Kota Tujuan <span class="text-xs text-gray-400">(RajaOngkir)</span></label>
+                            <input type="number" name="destination_city" id="destination_city" min="1"
+                                   class="input-field" placeholder="Contoh: 152 (Jakpus)"
+                                   value="{{ old('destination_city') }}">
+                            @error('destination_city') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
                         <div class="md:col-span-2">
-                            <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-1.5">Alamat Pengiriman <span class="text-red-500">*</span></label>
+                            <label for="shipping_address" class="block text-sm font-medium text-gray-700 mb-1.5">Alamat Lengkap <span class="text-red-500">*</span></label>
                             <textarea name="shipping_address" id="shipping_address" rows="3" required class="input-field">{{ old('shipping_address', auth()->user()->address) }}</textarea>
                             @error('shipping_address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
@@ -76,34 +83,47 @@
                         <i class="fas fa-shipping-fast text-amber-500"></i> Pilih Kurir
                     </h2>
 
-                    <div class="space-y-4" x-data="{ courier: '{{ old('courier') }}', service: '{{ old('courier_service') }}' }">
-                        @foreach($couriers as $key => $courier)
+                    <div class="space-y-4" x-data="{
+                        courier: '{{ old('courier') }}',
+                        service: '{{ old('courier_service') }}',
+                        loading: false,
+                        courierRates: {}
+                    }">
+                        <template x-if="Object.keys(courierRates).length === 0">
+                            <div class="text-center py-8">
+                                <i class="fas fa-truck text-gray-300 text-4xl mb-3"></i>
+                                <p class="text-gray-500">Masukkan ID kota tujuan di atas, lalu klik "Cek Ongkir"</p>
+                            </div>
+                        </template>
+
+                        <template x-for="(data, key) in courierRates" :key="key">
                             <label class="flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200"
-                                   :class="courier === '{{ $key }}' ? 'border-amber-500 bg-amber-50' : 'border-gray-100 hover:border-gray-200'">
-                                <input type="radio" name="courier" value="{{ $key }}"
+                                   :class="courier === key ? 'border-amber-500 bg-amber-50' : 'border-gray-100 hover:border-gray-200'">
+                                <input type="radio" name="courier" :value="key"
                                        x-model="courier"
                                        @change="service = ''"
                                        class="mt-1 w-4 h-4 text-amber-600 focus:ring-amber-500">
                                 <div class="flex-1">
                                     <div class="flex items-center justify-between">
-                                        <span class="font-semibold text-gray-900">{{ $courier['name'] }}</span>
+                                        <span class="font-semibold text-gray-900" x-text="data.name"></span>
                                     </div>
                                     <div class="mt-2 flex flex-wrap gap-2">
-                                        @foreach($courier['services'] as $svcKey => $svcCost)
+                                        <template x-for="(svc, svcKey) in data.services" :key="svcKey">
                                             <label class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm cursor-pointer transition-colors duration-200"
-                                                   :class="courier === '{{ $key }}' && service === '{{ $svcKey }}' ? 'border-amber-500 bg-amber-100 text-amber-800' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'"
-                                                   @click.stop="service = '{{ $svcKey }}'">
-                                                <input type="radio" name="courier_service" value="{{ $svcKey }}"
+                                                   :class="courier === key && service === svcKey ? 'border-amber-500 bg-amber-100 text-amber-800' : 'border-gray-100 bg-gray-50 hover:bg-gray-100'"
+                                                   @click.stop="service = svcKey">
+                                                <input type="radio" name="courier_service" :value="svcKey"
                                                        x-model="service"
                                                        class="sr-only">
-                                                <span class="font-medium">{{ $svcKey }}</span>
-                                                <span class="text-gray-500">Rp {{ number_format($svcCost, 0, ',', '.') }}</span>
+                                                <span class="font-medium" x-text="svcKey"></span>
+                                                <span class="text-gray-500" x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(svc.cost)"></span>
+                                                <span class="text-xs text-gray-400" x-show="svc.etd" x-text="'(' + svc.etd + ' hari)'"></span>
                                             </label>
-                                        @endforeach
+                                        </template>
                                     </div>
                                 </div>
                             </label>
-                        @endforeach
+                        </template>
                         <input type="hidden" name="courier_service" x-bind:value="service">
                         @error('courier') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         @error('courier_service') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -165,20 +185,40 @@
                      x-data="{
                          subtotal: {{ $cart->total }},
                          shippingCost: 0,
-                         courierRates: {{ json_encode(collect($couriers)->mapWithKeys(fn($c, $k) => [$k => $c['services']])) }},
                          selectedCourier: '{{ old('courier') }}',
                          selectedService: '{{ old('courier_service') }}',
                          discount: {{ session('applied_coupon.discount') ?? 0 }},
                          appliedCoupon: {{ session()->has('applied_coupon') ? 'true' : 'false' }},
                          couponCode: '{{ session('applied_coupon.code') ?? '' }}',
                          couponMessage: '',
+                         loadingRates: false,
+                         rajaOngkirConfigured: {{ $rajaOngkirConfigured ? 'true' : 'false' }},
+                         totalWeight: {{ $totalWeight }},
+                         courierRates: {{ json_encode(collect($couriers)->mapWithKeys(fn($c, $k) => [$k => ['name' => $c['name'], 'services' => collect($c['services'])->map(fn($cost, $svc) => ['cost' => $cost, 'service' => $svc, 'etd' => '-'])->keyBy('service')]]) ) }},
                          get shipping() {
                              if (this.selectedCourier && this.selectedService && this.courierRates[this.selectedCourier]) {
-                                 return this.courierRates[this.selectedCourier][this.selectedService] || 0;
+                                 const svc = this.courierRates[this.selectedCourier].services[this.selectedService];
+                                 return svc ? svc.cost : 0;
                              }
                              return 0;
                          },
                          get total() { return this.subtotal + this.shipping - this.discount; },
+                         fetchRates() {
+                             const cityId = document.getElementById('destination_city')?.value;
+                             if (!cityId) { return; }
+                             this.loadingRates = true;
+                             const weight = this.totalWeight;
+                             fetch('{{ route('checkout.courier-rates') }}?destination=' + cityId + '&weight=' + weight)
+                                 .then(r => r.json())
+                                 .then(d => {
+                                     this.courierRates = d.couriers;
+                                     this.selectedCourier = '';
+                                     this.selectedService = '';
+                                     this.shippingCost = 0;
+                                     this.loadingRates = false;
+                                 })
+                                 .catch(() => { this.loadingRates = false; });
+                         },
                          applyCoupon() {
                              fetch('{{ route('coupon.apply') }}', {
                                  method: 'POST',
@@ -219,10 +259,24 @@
                         @endforeach
                     </div>
 
-                    <div class="border-t border-gray-100 pt-4 space-y-2">
+                    <div class="space-y-2">
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-500">Subtotal</span>
                             <span class="font-medium">Rp {{ number_format($cart->total, 0, ',', '.') }}</span>
+                        </div>
+
+                        <div class="flex justify-between text-sm items-center">
+                            <span class="text-gray-500">Ongkos Kirim</span>
+                            <div class="text-right">
+                                <span class="font-medium" x-text="shipping > 0 ? 'Rp ' + new Intl.NumberFormat('id-ID').format(shipping) : (selectedCourier ? 'Pilih layanan' : 'Belum dipilih')"></span>
+                                <button @click.prevent="fetchRates()" type="button"
+                                        x-show="rajaOngkirConfigured"
+                                        class="block mt-1 text-xs text-amber-600 hover:text-amber-700"
+                                        x-bind:disabled="loadingRates">
+                                    <span x-show="!loadingRates"><i class="fas fa-sync-alt"></i> Cek Ongkir</span>
+                                    <span x-show="loadingRates"><i class="fas fa-spinner fa-spin"></i> Memuat...</span>
+                                </button>
+                            </div>
                         </div>
 
                         {{-- Coupon --}}
@@ -246,10 +300,6 @@
                             <p x-show="couponMessage" x-text="couponMessage" class="text-red-500 text-xs mt-1"></p>
                         </div>
 
-                        <div class="flex justify-between text-sm">
-                            <span class="text-gray-500">Ongkos Kirim</span>
-                            <span class="font-medium" x-text="shipping > 0 ? 'Rp ' + new Intl.NumberFormat('id-ID').format(shipping) : (selectedCourier ? 'Pilih layanan' : 'Belum dipilih')"></span>
-                        </div>
                         <div class="flex justify-between text-sm" x-show="discount > 0">
                             <span class="text-green-600">Diskon Kupon</span>
                             <span class="font-medium text-green-600" x-text="'-Rp ' + new Intl.NumberFormat('id-ID').format(discount)"></span>

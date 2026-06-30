@@ -65,6 +65,8 @@ class DatabaseSeeder extends Seeder
             ['key' => 'mail_encryption', 'value' => 'tls'],
             ['key' => 'mail_from_address', 'value' => ''],
             ['key' => 'mail_from_name', 'value' => ''],
+            ['key' => 'rajaongkir_api_key', 'value' => ''],
+            ['key' => 'store_origin_city', 'value' => ''],
         ];
 
         foreach ($settings as $setting) {
