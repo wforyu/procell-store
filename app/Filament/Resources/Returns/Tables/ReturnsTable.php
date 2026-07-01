@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Returns\Tables;
 use App\Models\Returns;
 use App\Models\User;
 use App\Notifications\ReturnStatusChanged;
+use App\Services\FonnteService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -84,6 +85,7 @@ class ReturnsTable
                         ]);
 
                         $record->user->notify(new ReturnStatusChanged($record, $oldStatus, 'approved'));
+                        app(FonnteService::class)->sendReturnStatus($record, $oldStatus, 'approved');
 
                         Notification::make()
                             ->title('Retur Disetujui')
@@ -113,6 +115,7 @@ class ReturnsTable
                         ]);
 
                         $record->user->notify(new ReturnStatusChanged($record, $oldStatus, 'rejected'));
+                        app(FonnteService::class)->sendReturnStatus($record, $oldStatus, 'rejected');
 
                         Notification::make()
                             ->title('Retur Ditolak')

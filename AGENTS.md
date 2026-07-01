@@ -189,6 +189,8 @@ C:\Users\pro021\procell-store\
 │   │   ├── OrderStatusChanged.php     — Notifikasi email ke customer saat status pesanan berubah
 │   │   └── ReturnStatusChanged.php    — Notifikasi email ke customer saat retur disetujui/ditolak
 │   ├── Services/
+│   │   ├── FonnteService.php          — WhatsApp notification via Fonnte API
+│   │   ├── LoyaltyService.php         — Poin loyalitas (earn, redeem, bonus referral)
 │   │   └── MidtransService.php        — Snap token, redirect URL, notification handler
 │   └── Providers/
 │       ├── AppServiceProvider.php     — View composer untuk cart count + footer pages
@@ -601,6 +603,7 @@ Pengaturan:
 - `QUEUE_CONNECTION=database` — notifikasi diproses via queue
 - RajaOngkir: admin bisa setting API Key + ID kota asal di Pengaturan Toko → RajaOngkir. Jika tidak dikonfigurasi, ongkir menggunakan tarif statis (fallback)
 - Midtrans: admin setting Server Key + Client Key + mode production di Pengaturan Toko → Midtrans. Callback URL: `/midtrans/notification` (POST) dan `/midtrans/finish/{order}` (GET)
+- Fonnte (WhatsApp): admin setting API Key di Pengaturan Toko → WhatsApp (Fonnte). Notifikasi otomatis ke customer via WA saat status pesanan/retur berubah, plus notifikasi ke admin saat retur baru / bukti bayar diupload
 - POS: tersedia di `/admin/pos`, hanya untuk role Kasir + Super Admin + Stok + Keuangan. Kasir tidak punya akses ke Filament panel, langsung redirect ke POS
 - Guest checkout: order disimpan di session `guest_orders`. Setelah registrasi, order otomatis tertaut ke akun baru berdasarkan email
 
@@ -620,7 +623,7 @@ Prioritas menengah:
 Prioritas rendah:
 6. ~~**POS (*Point of Sale*) interface**~~ ✅ Selesai — Antarmuka kasir untuk toko offline
 7. ~~**Integrasi payment gateway**~~ ✅ Selesai — Midtrans Snap (Kartu Kredit, VA, Convenience Store, QRIS, E-Wallet)
-8. **Notifikasi WhatsApp** — Menggunakan API Fonnte / Wablas untuk konfirmasi pesanan via WA
+8. ~~**Notifikasi WhatsApp**~~ ✅ Selesai — Menggunakan API Fonnte — notifikasi status pesanan & retur ke customer, notifikasi retur & bukti bayar ke admin
 
 ---
 

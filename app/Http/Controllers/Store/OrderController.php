@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Notifications\OrderStatusChanged;
 use App\Notifications\PaymentUploaded;
+use App\Services\FonnteService;
 use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
 
@@ -55,6 +56,7 @@ class OrderController extends Controller
         ]);
 
         $order->user->notify(new OrderStatusChanged($order, 'pending', 'waiting_confirmation'));
+        app(FonnteService::class)->sendOrderStatus($order, 'pending', 'waiting_confirmation');
 
         $admins = User::role(['Super Admin', 'Stok', 'Keuangan'])->get();
         Notification::make()
@@ -63,6 +65,10 @@ class OrderController extends Controller
             ->icon('heroicon-o-currency-dollar')
             ->sendToDatabase($admins);
         $admins->each->notify(new PaymentUploaded($order));
+        app(FonnteService::class)->notifyAdmins(
+            'Bukti Pembayaran Diupload',
+            'Pesanan #'.$order->order_number.' oleh '.$order->user->name.' menunggu konfirmasi pembayaran.'
+        );
 
         return back()->with('success', 'Bukti pembayaran berhasil diupload. Menunggu konfirmasi admin.');
     }
@@ -84,6 +90,7 @@ class OrderController extends Controller
         ]);
 
         $order->user->notify(new OrderStatusChanged($order, $oldStatus, 'completed'));
+        app(FonnteService::class)->sendOrderStatus($order, $oldStatus, 'completed');
 
         return back()->with('success', 'Pesanan telah diterima. Terima kasih!');
     }

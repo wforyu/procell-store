@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Orders\Tables;
 
 use App\Models\Order;
 use App\Notifications\OrderStatusChanged;
+use App\Services\FonnteService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -123,6 +124,7 @@ class OrdersTable
                             'payment_verified_at' => now(),
                         ]);
                         $record->user->notify(new OrderStatusChanged($record, 'waiting_confirmation', 'processing'));
+                        app(FonnteService::class)->sendOrderStatus($record, 'waiting_confirmation', 'processing');
                     })
                     ->visible(fn (Order $record) => $record->status === 'waiting_confirmation'),
                 Action::make('process')
@@ -133,6 +135,7 @@ class OrdersTable
                     ->action(function (Order $record) {
                         $record->update(['status' => 'processing']);
                         $record->user->notify(new OrderStatusChanged($record, 'pending', 'processing'));
+                        app(FonnteService::class)->sendOrderStatus($record, 'pending', 'processing');
                     })
                     ->visible(fn (Order $record) => $record->status === 'pending'),
                 Action::make('ship')
@@ -160,6 +163,7 @@ class OrdersTable
                             'shipped_at' => now(),
                         ]);
                         $record->user->notify(new OrderStatusChanged($record, 'processing', 'shipped'));
+                        app(FonnteService::class)->sendOrderStatus($record, 'processing', 'shipped');
                     })
                     ->visible(fn (Order $record) => $record->status === 'processing'),
                 Action::make('complete')
@@ -170,6 +174,7 @@ class OrdersTable
                     ->action(function (Order $record) {
                         $record->update(['status' => 'completed']);
                         $record->user->notify(new OrderStatusChanged($record, 'shipped', 'completed'));
+                        app(FonnteService::class)->sendOrderStatus($record, 'shipped', 'completed');
                     })
                     ->visible(fn (Order $record) => $record->status === 'shipped'),
                 Action::make('cancel')
@@ -181,6 +186,7 @@ class OrdersTable
                         $oldStatus = $record->status;
                         $record->update(['status' => 'cancelled']);
                         $record->user->notify(new OrderStatusChanged($record, $oldStatus, 'cancelled'));
+                        app(FonnteService::class)->sendOrderStatus($record, $oldStatus, 'cancelled');
                     })
                     ->visible(fn (Order $record) => ! in_array($record->status, ['completed', 'cancelled'])),
                 EditAction::make(),

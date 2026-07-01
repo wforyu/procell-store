@@ -193,10 +193,17 @@ class ManageSettings extends Page
                             ->helperText('Minimal poin yang bisa ditukarkan. Contoh: 100'),
                     ])->columns(2),
 
-                Section::make('Kontak')
+                Section::make('WhatsApp (Fonnte)')
+                    ->description('Konfigurasi notifikasi WhatsApp otomatis. Daftar di https://fonnte.com untuk mendapatkan API Key. Customer akan mendapat notifikasi via WA saat status pesanan/retur berubah.')
                     ->schema([
-                        TextInput::make('whatsapp_number')->label('Nomor WhatsApp')->helperText('Format: 628xxx tanpa tanda + atau spasi'),
-                    ]),
+                        TextInput::make('fonnte_api_key')
+                            ->label('API Key Fonnte')
+                            ->password()
+                            ->helperText('API Key dari akun Fonnte Anda. Kosongkan jika tidak ingin menggunakan notifikasi WA.'),
+                        TextInput::make('fonnte_sender_name')
+                            ->label('Nama Pengirim')
+                            ->helperText('Nama yang akan tampil sebagai pengirim. Contoh: ProCell Store'),
+                    ])->columns(2),
             ])
             ->statePath('data');
     }

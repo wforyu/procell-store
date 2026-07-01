@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Returns;
 use App\Models\User;
 use App\Notifications\ReturnSubmitted;
+use App\Services\FonnteService;
 use Filament\Notifications\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -75,6 +76,10 @@ class ReturnController extends Controller
             ->icon('heroicon-o-arrow-uturn-left')
             ->sendToDatabase($admins);
         $admins->each->notify(new ReturnSubmitted($retur));
+        app(FonnteService::class)->notifyAdmins(
+            'Retur Baru Diajukan',
+            'Retur #'.$retur->return_number.' oleh '.auth()->user()->name.' menunggu diproses.'
+        );
 
         return redirect()->route('orders.show', $order)
             ->with('success', 'Pengajuan retur berhasil dikirim. Admin akan memprosesnya.');

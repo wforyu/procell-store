@@ -74,6 +74,8 @@ class DatabaseSeeder extends Seeder
             ['key' => 'midtrans_server_key', 'value' => ''],
             ['key' => 'midtrans_client_key', 'value' => ''],
             ['key' => 'midtrans_is_production', 'value' => '0'],
+            ['key' => 'fonnte_api_key', 'value' => ''],
+            ['key' => 'fonnte_sender_name', 'value' => 'ProCell Store'],
         ];
 
         foreach ($settings as $setting) {
