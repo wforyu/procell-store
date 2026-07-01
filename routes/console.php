@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
@@ -10,7 +11,7 @@ Artisan::command('inspire', function () {
 Artisan::command('loyalty:init', function () {
     $this->info('Initializing referral codes for all users...');
 
-    foreach (\App\Models\User::all() as $user) {
+    foreach (User::all() as $user) {
         $user->initReferralCode();
     }
 

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\Returns;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
 class FonnteService
@@ -129,7 +130,7 @@ class FonnteService
 
     public function notifyAdmins(string $title, string $body): void
     {
-        $adminPhones = \App\Models\User::role(['Super Admin', 'Stok', 'Keuangan'])
+        $adminPhones = User::role(['Super Admin', 'Stok', 'Keuangan'])
             ->whereNotNull('phone')
             ->where('phone', '!=', '')
             ->pluck('phone')
@@ -156,11 +157,11 @@ class FonnteService
         $phone = preg_replace('/[^0-9]/', '', $phone);
 
         if (str_starts_with($phone, '0')) {
-            $phone = '62' . substr($phone, 1);
+            $phone = '62'.substr($phone, 1);
         } elseif (str_starts_with($phone, '62')) {
             // already correct
         } else {
-            $phone = '62' . $phone;
+            $phone = '62'.$phone;
         }
 
         return $phone;
