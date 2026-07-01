@@ -168,18 +168,22 @@
         .history-empty { text-align: center; padding: 1.5rem 1rem; color: #94a3b8; }
         .history-empty i { font-size: 1.5rem; margin-bottom: 0.375rem; color: #cbd5e1; }
         .history-empty p { font-size: 0.75rem; }
-        .numpad { border-top: 1px solid #e8ecf1; background: #f8fafc; padding: 0.625rem; flex-shrink: 0; }
-        .numpad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.375rem; }
-        .numpad-btn { height: 48px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; font-size: 1.125rem; font-weight: 700; color: #0f172a; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; user-select: none; }
-        .numpad-btn:hover { background: #fef3c7; border-color: #f59e0b; }
-        .numpad-btn:active { transform: scale(0.95); background: #fde68a; }
-        .numpad-btn.fn { font-size: 0.75rem; font-weight: 600; color: #475569; }
-        .numpad-btn.fn:hover { background: #fee2e2; border-color: #ef4444; color: #dc2626; }
-        .numpad-btn.enter { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; border-color: #d97706; }
-        .numpad-btn.enter:hover { box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
-        .numpad-row { display: flex; gap: 0.375rem; margin-bottom: 0.375rem; }
-        .numpad-row:last-child { margin-bottom: 0; }
-        .numpad-label { font-size: 0.625rem; color: #94a3b8; text-align: center; padding-bottom: 0.375rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem; }
+        .numpad-toggle-btn { background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.875rem; padding: 0.375rem 0.5rem; border-radius: 6px; transition: all 0.15s; }
+        .numpad-toggle-btn:hover { background: #e2e8f0; color: #0f172a; }
+        .numpad-toggle-btn.active { background: #f59e0b; color: #fff; }
+        .numpad-toggle-btn.active:hover { background: #d97706; }
+        .numpad-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: #f8fafc; border-top: 2px solid #e2e8f0; padding: 0.75rem; z-index: 50; transform: translateY(100%); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 -8px 24px rgba(0,0,0,0.08); }
+        .numpad-overlay.show { transform: translateY(0); }
+        .numpad-overlay .numpad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.375rem; }
+        .numpad-overlay .numpad-btn { height: 44px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; font-size: 1rem; font-weight: 700; color: #0f172a; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; user-select: none; }
+        .numpad-overlay .numpad-btn:hover { background: #fef3c7; border-color: #f59e0b; }
+        .numpad-overlay .numpad-btn:active { transform: scale(0.95); background: #fde68a; }
+        .numpad-overlay .numpad-btn.fn { font-size: 0.75rem; font-weight: 600; color: #475569; }
+        .numpad-overlay .numpad-btn.fn:hover { background: #fee2e2; border-color: #ef4444; color: #dc2626; }
+        .numpad-overlay .numpad-btn.enter { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; border-color: #d97706; }
+        .numpad-overlay .numpad-btn.enter:hover { box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+        .numpad-overlay .numpad-label { font-size: 0.625rem; color: #94a3b8; text-align: center; padding-bottom: 0.375rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem; }
+        .pos-cart { position: relative; overflow: visible; }
     </style>
 </head>
 <body>
@@ -224,13 +228,16 @@
         <div class="pos-cart">
             <div class="pos-cart-header">
                 <h2><i class="fas fa-shopping-cart"></i> Pesanan <span id="cart-count">{{ count($posCart) }}</span></h2>
-                <button onclick="clearCart()" id="clear-cart-btn" {{ empty($posCart) ? 'style=display:none' : '' }}><i class="fas fa-trash-alt"></i> Hapus Semua</button>
+                <div style="display:flex;align-items:center;gap:0.25rem">
+                    <button class="numpad-toggle-btn" onclick="toggleNumpad()" id="numpad-toggle" title="Keypad Numerik"><i class="fas fa-keyboard"></i></button>
+                    <button onclick="clearCart()" id="clear-cart-btn" {{ empty($posCart) ? 'style=display:none' : '' }}><i class="fas fa-trash-alt"></i> Hapus Semua</button>
+                </div>
             </div>
             <div id="pos-cart-items" class="pos-cart-items">
                 @include('admin.pos._cart', ['posCart' => $posCart])
             </div>
-            {{-- Virtual Numpad --}}
-            <div class="numpad" id="pos-numpad">
+            {{-- Floating Numpad Overlay --}}
+            <div class="numpad-overlay" id="pos-numpad">
                 <div class="numpad-label"><i class="fas fa-keyboard"></i> Keypad Numerik</div>
                 <div class="numpad-grid">
                     <button type="button" class="numpad-btn" onclick="numpadKey('7')">7</button>
@@ -754,6 +761,28 @@
             .then(d => { if (d.success) updateCart(d); })
             .catch(() => notify('Gagal hapus produk', 'error'));
         }
+
+        // --- Numpad Toggle ---
+        function toggleNumpad() {
+            const overlay = document.getElementById('pos-numpad');
+            const btn = document.getElementById('numpad-toggle');
+            const isOpen = overlay.classList.toggle('show');
+            btn.classList.toggle('active', isOpen);
+            if (isOpen) {
+                // Focus search so numpad keys work immediately
+                document.getElementById('search-pos').focus();
+            }
+        }
+
+        // Close numpad when clicking outside the cart
+        document.addEventListener('click', function(e) {
+            const overlay = document.getElementById('pos-numpad');
+            const btn = document.getElementById('numpad-toggle');
+            if (overlay.classList.contains('show') && !e.target.closest('.pos-cart')) {
+                overlay.classList.remove('show');
+                btn.classList.remove('active');
+            }
+        });
 
         // --- Virtual Numpad ---
         function numpadKey(key) {
