@@ -174,15 +174,24 @@
         .numpad-toggle-btn.active:hover { background: #d97706; }
         .numpad-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: #f8fafc; border-top: 2px solid #e2e8f0; padding: 0.75rem; z-index: 50; transform: translateY(100%); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 -8px 24px rgba(0,0,0,0.08); }
         .numpad-overlay.show { transform: translateY(0); }
-        .numpad-overlay .numpad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.375rem; }
-        .numpad-overlay .numpad-btn { height: 44px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; font-size: 1rem; font-weight: 700; color: #0f172a; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; user-select: none; }
+        .numpad-overlay .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.375rem; }
+        .numpad-overlay .numpad-grid.keypad { grid-template-columns: repeat(4, 1fr); }
+        .numpad-overlay .numpad-btn { height: 44px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; font-size: 0.875rem; font-weight: 700; color: #0f172a; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.1s; user-select: none; }
         .numpad-overlay .numpad-btn:hover { background: #fef3c7; border-color: #f59e0b; }
         .numpad-overlay .numpad-btn:active { transform: scale(0.95); background: #fde68a; }
+        .numpad-overlay .numpad-btn.preset { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); font-size: 0.8125rem; font-weight: 700; border-color: #d1d5db; }
+        .numpad-overlay .numpad-btn.preset:hover { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: #f59e0b; }
+        .numpad-overlay .numpad-btn.preset.exact { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; border-color: #047857; }
+        .numpad-overlay .numpad-btn.preset.exact:hover { box-shadow: 0 2px 8px rgba(5,150,105,0.3); }
         .numpad-overlay .numpad-btn.fn { font-size: 0.75rem; font-weight: 600; color: #475569; }
         .numpad-overlay .numpad-btn.fn:hover { background: #fee2e2; border-color: #ef4444; color: #dc2626; }
         .numpad-overlay .numpad-btn.enter { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; border-color: #d97706; }
         .numpad-overlay .numpad-btn.enter:hover { box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
         .numpad-overlay .numpad-label { font-size: 0.625rem; color: #94a3b8; text-align: center; padding-bottom: 0.375rem; display: flex; align-items: center; justify-content: center; gap: 0.25rem; }
+        .numpad-overlay .numpad-mode-btn { background: none; border: none; color: #64748b; cursor: pointer; font-size: 0.6875rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 999px; transition: all 0.15s; margin: 0 auto; display: flex; align-items: center; gap: 0.375rem; }
+        .numpad-overlay .numpad-mode-btn:hover { background: #e2e8f0; color: #0f172a; }
+        .numpad-overlay .numpad-mode { display: none; }
+        .numpad-overlay .numpad-mode.show { display: block; }
         .pos-cart { position: relative; overflow: visible; }
     </style>
 </head>
@@ -238,24 +247,48 @@
             </div>
             {{-- Floating Numpad Overlay --}}
             <div class="numpad-overlay" id="pos-numpad">
-                <div class="numpad-label"><i class="fas fa-keyboard"></i> Keypad Numerik</div>
-                <div class="numpad-grid">
-                    <button type="button" class="numpad-btn" onclick="numpadKey('7')">7</button>
-                    <button type="button" class="numpad-btn" onclick="numpadKey('8')">8</button>
-                    <button type="button" class="numpad-btn" onclick="numpadKey('9')">9</button>
-                    <button type="button" class="numpad-btn fn" onclick="numpadBksp()"><i class="fas fa-delete-left"></i></button>
-                    <button type="button" class="numpad-btn" onclick="numpadKey('4')">4</button>
-                    <button type="button" class="numpad-btn" onclick="numpadKey('5')">5</button>
-                    <button type="button" class="numpad-btn" onclick="numpadKey('6')">6</button>
-                    <button type="button" class="numpad-btn fn" onclick="numpadClear()"><i class="fas fa-eraser"></i></button>
-                    <button type="button" class="numpad-btn" onclick="numpadKey('1')">1</button>
-                    <button type="button" class="numpad-btn" onclick="numpadKey('2')">2</button>
-                    <button type="button" class="numpad-btn" onclick="numpadKey('3')">3</button>
-                    <button type="button" class="numpad-btn fn" onclick="numpadKey('00')">00</button>
-                    <button type="button" class="numpad-btn fn" onclick="numpadKey('0')">0</button>
-                    <button type="button" class="numpad-btn" onclick="numpadKey(',')">,</button>
-                    <button type="button" class="numpad-btn fn" onclick="numpadTab()" title="Pindah field"><i class="fas fa-arrow-right-arrow-left"></i></button>
-                    <button type="button" class="numpad-btn enter" onclick="numpadEnter()"><i class="fas fa-check"></i></button>
+                {{-- Mode: Nominal Cepat --}}
+                <div class="numpad-mode show" id="numpad-mode-preset">
+                    <div class="numpad-label"><i class="fas fa-coins"></i> Nominal Cepat</div>
+                    <div class="numpad-grid">
+                        <button type="button" class="numpad-btn preset" onclick="numpadAmount(5000)">Rp 5.000</button>
+                        <button type="button" class="numpad-btn preset" onclick="numpadAmount(10000)">Rp 10.000</button>
+                        <button type="button" class="numpad-btn preset" onclick="numpadAmount(20000)">Rp 20.000</button>
+                        <button type="button" class="numpad-btn preset" onclick="numpadAmount(50000)">Rp 50.000</button>
+                        <button type="button" class="numpad-btn preset" onclick="numpadAmount(100000)">Rp 100.000</button>
+                        <button type="button" class="numpad-btn preset" onclick="numpadAmount(200000)">Rp 200.000</button>
+                        <button type="button" class="numpad-btn preset" onclick="numpadAmount(500000)">Rp 500.000</button>
+                        <button type="button" class="numpad-btn preset" onclick="numpadAmount(1000000)">Rp 1.000.000</button>
+                        <button type="button" class="numpad-btn preset exact" onclick="numpadExact()"><i class="fas fa-check-circle"></i> Uang Pas</button>
+                    </div>
+                    <div style="text-align:center;margin-top:0.5rem">
+                        <button type="button" class="numpad-mode-btn" onclick="toggleNumpadMode()"><i class="fas fa-keyboard"></i> Keypad</button>
+                    </div>
+                </div>
+                {{-- Mode: Keypad --}}
+                <div class="numpad-mode" id="numpad-mode-keypad">
+                    <div class="numpad-label"><i class="fas fa-keyboard"></i> Keypad</div>
+                    <div class="numpad-grid keypad">
+                        <button type="button" class="numpad-btn" onclick="numpadKey('7')">7</button>
+                        <button type="button" class="numpad-btn" onclick="numpadKey('8')">8</button>
+                        <button type="button" class="numpad-btn" onclick="numpadKey('9')">9</button>
+                        <button type="button" class="numpad-btn fn" onclick="numpadBksp()"><i class="fas fa-delete-left"></i></button>
+                        <button type="button" class="numpad-btn" onclick="numpadKey('4')">4</button>
+                        <button type="button" class="numpad-btn" onclick="numpadKey('5')">5</button>
+                        <button type="button" class="numpad-btn" onclick="numpadKey('6')">6</button>
+                        <button type="button" class="numpad-btn fn" onclick="numpadClear()"><i class="fas fa-eraser"></i></button>
+                        <button type="button" class="numpad-btn" onclick="numpadKey('1')">1</button>
+                        <button type="button" class="numpad-btn" onclick="numpadKey('2')">2</button>
+                        <button type="button" class="numpad-btn" onclick="numpadKey('3')">3</button>
+                        <button type="button" class="numpad-btn fn" onclick="numpadKey('00')">00</button>
+                        <button type="button" class="numpad-btn fn" onclick="numpadKey('0')">0</button>
+                        <button type="button" class="numpad-btn" onclick="numpadKey(',')">,</button>
+                        <button type="button" class="numpad-btn fn" onclick="numpadTab()" title="Pindah"><i class="fas fa-arrow-right-arrow-left"></i></button>
+                        <button type="button" class="numpad-btn enter" onclick="numpadEnter()"><i class="fas fa-check"></i></button>
+                    </div>
+                    <div style="text-align:center;margin-top:0.5rem">
+                        <button type="button" class="numpad-mode-btn" onclick="toggleNumpadMode()"><i class="fas fa-coins"></i> Nominal Cepat</button>
+                    </div>
                 </div>
             </div>
             <div class="pos-cart-footer">
@@ -769,8 +802,56 @@
             const isOpen = overlay.classList.toggle('show');
             btn.classList.toggle('active', isOpen);
             if (isOpen) {
-                // Focus search so numpad keys work immediately
                 document.getElementById('search-pos').focus();
+            }
+        }
+
+        function toggleNumpadMode() {
+            const preset = document.getElementById('numpad-mode-preset');
+            const keypad = document.getElementById('numpad-mode-keypad');
+            const isPreset = preset.classList.toggle('show');
+            keypad.classList.toggle('show', !isPreset);
+        }
+
+        // Nominal cepat: kirim nilai ke field aktif
+        function numpadAmount(amount) {
+            const el = document.activeElement;
+            // Target utama: amount-paid (field bayar tunai)
+            const paidInput = document.getElementById('amount-paid');
+            const paidRaw = document.getElementById('amount-paid-raw');
+            if (el === paidInput || el === document.getElementById('amount-paid')) {
+                paidRaw.value = amount;
+                paidInput.value = new Intl.NumberFormat('id-ID').format(amount);
+                paidInput.dispatchEvent(new Event('input'));
+                calculateChange();
+                return;
+            }
+            // Fallback: kirim ke input aktif
+            if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+                el.value = new Intl.NumberFormat('id-ID').format(amount);
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+                // Trigger hidden raw value if it's the search or discount
+                if (el.id === 'discount-value') {
+                    // discount uses raw numeric parse
+                    el.dispatchEvent(new Event('input'));
+                }
+            }
+        }
+
+        // Uang Pas: isi amount-paid dengan grand total
+        function numpadExact() {
+            const totalText = document.getElementById('grand-total-value').textContent.replace(/[^0-9]/g, '');
+            const total = parseInt(totalText) || 0;
+            const paidInput = document.getElementById('amount-paid');
+            const paidRaw = document.getElementById('amount-paid-raw');
+            paidRaw.value = total;
+            paidInput.value = new Intl.NumberFormat('id-ID').format(total);
+            paidInput.dispatchEvent(new Event('input'));
+            calculateChange();
+            // Auto-focus payment select
+            if (!document.getElementById('pos-payment').value) {
+                document.getElementById('pos-payment').value = 'cash';
+                toggleBank();
             }
         }
 
