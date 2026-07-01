@@ -6,3 +6,13 @@ use Illuminate\Support\Facades\Artisan;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Artisan::command('loyalty:init', function () {
+    $this->info('Initializing referral codes for all users...');
+
+    foreach (\App\Models\User::all() as $user) {
+        $user->initReferralCode();
+    }
+
+    $this->info('Done! Referral codes initialized for all users.');
+})->purpose('Generate referral codes and loyalty point records for all existing users');

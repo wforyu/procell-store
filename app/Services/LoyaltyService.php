@@ -71,10 +71,6 @@ class LoyaltyService
         );
 
         $order->updateQuietly(['points_earned' => $points]);
-
-        if ($user->referred_by && $order->wasRecentlyCompleted) {
-            $this->awardReferralBonus($user);
-        }
     }
 
     public function awardReferralBonus(User $newUser): void

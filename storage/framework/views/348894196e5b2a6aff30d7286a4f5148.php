@@ -25,12 +25,18 @@
             <div class="relative rounded-2xl overflow-hidden">
                 <div class="aspect-[21/9] md:aspect-[3/1] relative">
                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $banners; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $banner): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoopIteration(); ?><?php endif; ?>
-                        <div x-show="current === <?php echo e($i); ?>" x-transition:enter="transition-all duration-700" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition-all duration-500" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute inset-0 rounded-2xl" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, <?php echo e($i % 2 == 0 ? '#0f3460' : '#533483'); ?> 100%);">
+                        <div x-show="current === <?php echo e($i); ?>" x-transition:enter="transition-all duration-700" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition-all duration-500" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute inset-0 rounded-2xl overflow-hidden">
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($banner->image): ?>
+                                <img src="<?php echo e(asset('storage/' . $banner->image)); ?>" class="absolute inset-0 w-full h-full object-cover" alt="<?php echo e($banner->title); ?>">
+                                <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+                            <?php else: ?>
+                                <div class="absolute inset-0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, <?php echo e($i % 2 == 0 ? '#0f3460' : '#533483'); ?> 100%);"></div>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             <div class="absolute inset-0 flex items-center px-8 md:px-16">
-                                <div class="max-w-lg">
+                                <div class="max-w-lg relative z-10">
                                     <h2 class="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-4 leading-tight"><?php echo e($banner->title); ?></h2>
                                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($banner->subtitle): ?>
-                                        <p class="text-sm md:text-lg text-gray-300 mb-4 md:mb-6"><?php echo e($banner->subtitle); ?></p>
+                                        <p class="text-sm md:text-lg text-gray-200 mb-4 md:mb-6"><?php echo e($banner->subtitle); ?></p>
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($banner->link): ?>
                                         <a href="<?php echo e($banner->link); ?>" class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-semibold transition-all text-sm md:text-base shadow-lg shadow-amber-500/25">
@@ -40,11 +46,6 @@
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
                             </div>
-                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($banner->image): ?>
-                                <div class="absolute right-0 top-0 bottom-0 w-1/2 hidden md:flex items-center justify-center p-8">
-                                    <img src="<?php echo e(asset('storage/' . $banner->image)); ?>" class="max-w-full max-h-full object-contain" alt="<?php echo e($banner->title); ?>">
-                                </div>
-                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
                 </div>
@@ -256,7 +257,9 @@
             </button>
             
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($popupBanner->image): ?>
-                <img src="<?php echo e(asset('storage/' . $popupBanner->image)); ?>" alt="<?php echo e($popupBanner->title); ?>" class="w-full aspect-[4/3] object-cover">
+                <div class="w-full aspect-[4/3] bg-gray-100 flex items-center justify-center p-4">
+                    <img src="<?php echo e(asset('storage/' . $popupBanner->image)); ?>" alt="<?php echo e($popupBanner->title); ?>" class="w-full h-full object-contain">
+                </div>
             <?php else: ?>
                 <div class="w-full aspect-[4/3] bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                     <i class="fas fa-bullhorn text-6xl text-white/50"></i>

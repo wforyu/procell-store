@@ -60,6 +60,8 @@ class RoleSeeder extends Seeder
             'bank_account.view',
         ]);
 
+        Role::firstOrCreate(['name' => 'Kasir', 'guard_name' => 'web']);
+
         $user = User::where('email', 'admin@procell.com')->first();
         if ($user) {
             $user->assignRole('Super Admin');

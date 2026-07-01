@@ -25,12 +25,18 @@
             <div class="relative rounded-2xl overflow-hidden">
                 <div class="aspect-[21/9] md:aspect-[3/1] relative">
                     @foreach($banners as $i => $banner)
-                        <div x-show="current === {{ $i }}" x-transition:enter="transition-all duration-700" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition-all duration-500" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute inset-0 rounded-2xl" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, {{ $i % 2 == 0 ? '#0f3460' : '#533483' }} 100%);">
+                        <div x-show="current === {{ $i }}" x-transition:enter="transition-all duration-700" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition-all duration-500" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute inset-0 rounded-2xl overflow-hidden">
+                            @if($banner->image)
+                                <img src="{{ asset('storage/' . $banner->image) }}" class="absolute inset-0 w-full h-full object-cover" alt="{{ $banner->title }}">
+                                <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent"></div>
+                            @else
+                                <div class="absolute inset-0" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, {{ $i % 2 == 0 ? '#0f3460' : '#533483' }} 100%);"></div>
+                            @endif
                             <div class="absolute inset-0 flex items-center px-8 md:px-16">
-                                <div class="max-w-lg">
+                                <div class="max-w-lg relative z-10">
                                     <h2 class="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-4 leading-tight">{{ $banner->title }}</h2>
                                     @if($banner->subtitle)
-                                        <p class="text-sm md:text-lg text-gray-300 mb-4 md:mb-6">{{ $banner->subtitle }}</p>
+                                        <p class="text-sm md:text-lg text-gray-200 mb-4 md:mb-6">{{ $banner->subtitle }}</p>
                                     @endif
                                     @if($banner->link)
                                         <a href="{{ $banner->link }}" class="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-semibold transition-all text-sm md:text-base shadow-lg shadow-amber-500/25">
@@ -40,11 +46,6 @@
                                     @endif
                                 </div>
                             </div>
-                            @if($banner->image)
-                                <div class="absolute right-0 top-0 bottom-0 w-1/2 hidden md:flex items-center justify-center p-8">
-                                    <img src="{{ asset('storage/' . $banner->image) }}" class="max-w-full max-h-full object-contain" alt="{{ $banner->title }}">
-                                </div>
-                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -254,7 +255,9 @@
             </button>
             {{-- Image --}}
             @if($popupBanner->image)
-                <img src="{{ asset('storage/' . $popupBanner->image) }}" alt="{{ $popupBanner->title }}" class="w-full aspect-[4/3] object-cover">
+                <div class="w-full aspect-[4/3] bg-gray-100 flex items-center justify-center p-4">
+                    <img src="{{ asset('storage/' . $popupBanner->image) }}" alt="{{ $popupBanner->title }}" class="w-full h-full object-contain">
+                </div>
             @else
                 <div class="w-full aspect-[4/3] bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                     <i class="fas fa-bullhorn text-6xl text-white/50"></i>

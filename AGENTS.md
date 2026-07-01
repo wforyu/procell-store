@@ -614,7 +614,7 @@ Prioritas tinggi:
 
 Prioritas menengah:
 3. ~~**Multi-admin & roles**~~ ✅ Selesai — Spatie Laravel Permission untuk membedakan akses admin (super admin, stok, keuangan, kasir)
-4. **Loyalty points + referral system** — Poin belanja + kode referral
+4. ~~**Loyalty points + referral system**~~ ✅ Selesai — Poin belanja + kode referral (registrasi, checkout redeem, bonus referral, histori poin, pengaturan poin di admin)
 5. ~~**Guest checkout**~~ ✅ Selesai — Checkout tanpa registrasi
 
 Prioritas rendah:
