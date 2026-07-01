@@ -12,6 +12,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Support\RawJs;
 use Filament\Tables\Table;
 
 class CustomerResource extends Resource
@@ -47,6 +48,10 @@ class CustomerResource extends Resource
                     ->columnSpanFull(),
                 TextInput::make('total_spent')
                     ->label('Total Belanja')
+                    ->prefix('Rp')
+                    ->disabled()
+                    ->mask(RawJs::make('(function(){var d=$input.replace(/\D/g,\'\');if(!d)return\'\';var p=[],r=d.length;while(r>0){var t=r>3?3:r;p.unshift(\'9\'.repeat(t));r-=t}return p.join(\'.\')})()'))
+                    ->afterStateHydrated(fn (TextInput $component, $state) => $component->state($state ? number_format((int) $state, 0, ',', '.') : '0'))
                     ->columnSpanFull(),
                 TextInput::make('created_at')
                     ->label('Bergabung'),

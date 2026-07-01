@@ -55,13 +55,16 @@ class OrderController extends Controller
             'status' => 'waiting_confirmation',
         ]);
 
-        $order->user->notify(new OrderStatusChanged($order, 'pending', 'waiting_confirmation'));
+        if ($order->user) {
+            $order->user->notify(new OrderStatusChanged($order, 'pending', 'waiting_confirmation'));
+        }
         app(FonnteService::class)->sendOrderStatus($order, 'pending', 'waiting_confirmation');
 
+        $customerName = $order->customer?->name ?? $order->user?->name ?? 'Guest';
         $admins = User::role(['Super Admin', 'Stok', 'Keuangan'])->get();
         Notification::make()
             ->title('Bukti Pembayaran Diupload')
-            ->body('Pesanan #'.$order->order_number.' oleh '.$order->user->name.' menunggu konfirmasi pembayaran.')
+            ->body('Pesanan #'.$order->order_number.' oleh '.$customerName.' menunggu konfirmasi pembayaran.')
             ->icon('heroicon-o-currency-dollar')
             ->sendToDatabase($admins);
         $admins->each->notify(new PaymentUploaded($order));
@@ -89,7 +92,9 @@ class OrderController extends Controller
             'received_at' => now(),
         ]);
 
-        $order->user->notify(new OrderStatusChanged($order, $oldStatus, 'completed'));
+        if ($order->user) {
+            $order->user->notify(new OrderStatusChanged($order, $oldStatus, 'completed'));
+        }
         app(FonnteService::class)->sendOrderStatus($order, $oldStatus, 'completed');
 
         return back()->with('success', 'Pesanan telah diterima. Terima kasih!');

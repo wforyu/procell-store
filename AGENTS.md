@@ -54,7 +54,7 @@ Proyek ini juga menyertakan berbagai *bug fix* dan *workaround* khusus untuk Fil
 
 | Tabel | Fungsi |
 |-------|--------|
-| `users` | Admin & customer (`is_admin` boolean) |
+| `users` | Admin & customer (`is_admin` boolean, Spatie roles) |
 | `customers` | Data tambahan customer (relasi 1:1 ke users, alamat, telepon) |
 | `categories` | Kategori produk (`parent_id` untuk sub-kategori, `slug`, `is_active`) |
 | `products` | Produk (stok, harga, *brand*, gambar utama, slug otomatis, SKU, *weight*, *is_active*) |
@@ -150,7 +150,7 @@ C:\Users\pro021\procell-store\
 │   ├── Http/Controllers/
 │   │   ├── Admin/
 │   │   │   ├── OrderExportController.php — Export CSV pesanan
-│   │   │   └── PosController.php      — POS interface (search, add, update, remove, checkout, receipt)
+│   │   │   └── PosController.php      — POS interface (+ clearCart, skuAdd, customerAdd, history)
 │   │   └── Store/
 │   │       ├── CartController.php     — Keranjang (guest via session, login via user_id)
 │   │       ├── CheckoutController.php — Checkout + kurir + kupon + pembayaran + guest checkout
@@ -255,6 +255,7 @@ C:\Users\pro021\procell-store\
 │   │       ├── index.blade.php          — POS interface (product grid, cart panel, checkout)
 │   │       ├── _cart.blade.php          — POS partial: cart items list
 │   │       ├── _products.blade.php      — POS partial: product cards grid
+│   │       ├── _history.blade.php       — POS partial: riwayat transaksi hari ini
 │   │       └── receipt.blade.php        — POS printable receipt
 │   └── filament/
 │       ├── orders/
@@ -397,6 +398,13 @@ Persediaan:
 
 Transaksi:
   ├─ POS                → POS interface (product grid, cart, customer, payment via cash/bank_transfer)
+  │                       → Diskon per item/total (% atau nominal)
+  │                       → Tambah customer cepat via modal
+  │                       → Riwayat transaksi POS hari ini (collapsible + auto-refresh)
+  │                       → Input quantity langsung (klik angka → input → Enter/blur simpan)
+  │                       → Shortcut keyboard: F2 (cari), F3 (bayar), Esc (hapus)
+  │                       → Virtual numpad untuk input harga/jumlah
+  │                       → Tombol Keluar + hidden Dashboard untuk role Kasir
   │                       → Order number prefix `POS-`, status langsung `completed`
   │                       → Stok otomatis berkurang + stock_movement tercatat
   ├─ Pesanan            → Lihat/ubah status, filter (status), aksi per-item:
@@ -585,6 +593,8 @@ Pengaturan:
 | `php artisan optimize` gagal | Gunakan `route:cache` + `config:cache` terpisah |
 | Kupon "Pro-Diskon 30%" expired | Update `expires_at` +1 tahun, `min_order` 0 via CouponSeeder |
 | `@alpinejs/mask` tidak terinstal | `x-mask:dynamic` pakai `RawJs` dengan *single quotes* di JS |
+| POS `_history.blade.php` `$order['total']` undefined saat render awal | Gunakan `grand_total` (nama accessor model) + mapping array konsisten di `index()` dan `history()` |
+| `Payment_method` di tabel admin hanya tampil `-` selain `bank_transfer` | Tambah `'cash' => 'Tunai'` dan `'midtrans' => 'Midtrans'` di `OrdersTable.php` dan `ExportController.php` |
 
 ---
 
@@ -604,7 +614,7 @@ Pengaturan:
 - RajaOngkir: admin bisa setting API Key + ID kota asal di Pengaturan Toko → RajaOngkir. Jika tidak dikonfigurasi, ongkir menggunakan tarif statis (fallback)
 - Midtrans: admin setting Server Key + Client Key + mode production di Pengaturan Toko → Midtrans. Callback URL: `/midtrans/notification` (POST) dan `/midtrans/finish/{order}` (GET)
 - Fonnte (WhatsApp): admin setting API Key di Pengaturan Toko → WhatsApp (Fonnte). Notifikasi otomatis ke customer via WA saat status pesanan/retur berubah, plus notifikasi ke admin saat retur baru / bukti bayar diupload
-- POS: tersedia di `/admin/pos`, hanya untuk role Kasir + Super Admin + Stok + Keuangan. Kasir tidak punya akses ke Filament panel, langsung redirect ke POS
+- POS: tersedia di `/admin/pos`, hanya untuk role Kasir + Super Admin + Stok + Keuangan. Kasir tidak punya akses ke Filament panel, langsung redirect ke POS. Tombol Dashboard disembunyikan untuk Kasir
 - Guest checkout: order disimpan di session `guest_orders`. Setelah registrasi, order otomatis tertaut ke akun baru berdasarkan email
 
 ---

@@ -25,7 +25,8 @@ class ExpenseForm
                     ->default('0')
                     ->prefix('Rp')
                     ->mask(RawJs::make('(function(){var d=$input.replace(/\D/g,\'\');if(!d)return\'\';var p=[],r=d.length;while(r>0){var t=r>3?3:r;p.unshift(\'9\'.repeat(t));r-=t}return p.join(\'.\')})()'))
-                    ->mutateDehydratedStateUsing(fn ($state) => $state ? (int) str_replace('.', '', $state) : 0),
+                    ->mutateDehydratedStateUsing(fn ($state) => $state ? (int) str_replace('.', '', $state) : 0)
+                    ->afterStateHydrated(fn (TextInput $component, $state) => $component->state($state ? number_format((int) $state, 0, ',', '.') : '0')),
                 TextInput::make('category')
                     ->label('Kategori')
                     ->helperText('Jenis pengeluaran, contoh: Operasional, Belanja Stok, Listrik')

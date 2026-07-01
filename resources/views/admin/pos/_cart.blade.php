@@ -6,7 +6,7 @@
         </div>
         <div class="qty-control">
             <button onclick="updateQty({{ $item['product_id'] }}, -1)"><i class="fas fa-minus"></i></button>
-            <span class="qty-value" data-pid="{{ $item['product_id'] }}">{{ $item['quantity'] }}</span>
+            <span class="qty-value clickable-qty" data-pid="{{ $item['product_id'] }}" onclick="editQty(this, {{ $item['product_id'] }})">{{ $item['quantity'] }}</span>
             <button onclick="updateQty({{ $item['product_id'] }}, 1)"><i class="fas fa-plus"></i></button>
         </div>
         <div class="item-subtotal">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</div>

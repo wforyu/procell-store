@@ -44,10 +44,10 @@ class PurchaseOrderForm
                     ->label('Total')
                     ->helperText('Total nilai purchase order (dihitung dari subtotal item)')
                     ->required()
-                    ->numeric()
-                    ->default(0.0)
+                    ->default('0')
                     ->prefix('Rp')
-                    ->disabled(),
+                    ->disabled()
+                    ->afterStateHydrated(fn (TextInput $component, $state) => $component->state($state ? number_format((int) $state, 0, ',', '.') : '0')),
                 Textarea::make('notes')
                     ->label('Catatan')
                     ->helperText('Catatan tambahan untuk purchase order ini')
@@ -100,11 +100,11 @@ class PurchaseOrderForm
                             )),
                         TextInput::make('subtotal')
                             ->label('Subtotal')
-                            ->numeric()
                             ->prefix('Rp')
                             ->disabled()
                             ->columnSpan(1)
-                            ->default(0),
+                            ->default('0')
+                            ->afterStateHydrated(fn (TextInput $component, $state) => $component->state($state ? number_format((int) $state, 0, ',', '.') : '0')),
                     ])
                     ->columns(7)
                     ->columnSpanFull()

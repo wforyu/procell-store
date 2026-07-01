@@ -61,6 +61,8 @@ class OrdersTable
                     ->label('Pembayaran')
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
                         'bank_transfer' => 'Transfer',
+                        'cash' => 'Tunai',
+                        'midtrans' => 'Midtrans',
                         default => '-',
                     })
                     ->toggleable(),

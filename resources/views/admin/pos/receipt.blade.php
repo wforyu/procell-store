@@ -31,9 +31,10 @@
         .btn-dash { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
         .btn-dash:hover { background: #e2e8f0; }
         @media print {
-            body { background: #fff; padding: 0; }
-            .receipt { box-shadow: none; border-radius: 0; }
+            body { background: #fff; padding: 0; min-height: auto; }
+            .receipt { box-shadow: none; border-radius: 0; max-width: 100%; }
             .receipt-actions { display: none; }
+            .receipt-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>

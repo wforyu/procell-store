@@ -30,7 +30,22 @@ class PosController extends Controller
 
         $bankAccounts = BankAccount::active()->get();
 
-        return view('admin.pos.index', compact('products', 'categories', 'posCart', 'customers', 'bankAccounts') + [
+        $todayOrders = Order::where('order_number', 'like', 'POS-%')
+            ->whereDate('created_at', today())
+            ->with('customer:id,name')
+            ->latest()
+            ->limit(10)
+            ->get()
+            ->map(fn ($o) => [
+                'id' => $o->id,
+                'order_number' => $o->order_number,
+                'customer_name' => $o->customer?->name ?? 'Walk-in',
+                'grand_total' => $o->grand_total,
+                'payment_method' => $o->payment_method,
+                'created_at' => $o->created_at->format('H:i'),
+            ]);
+
+        return view('admin.pos.index', compact('products', 'categories', 'posCart', 'customers', 'bankAccounts', 'todayOrders') + [
             'cartTotal' => $this->cartTotal($posCart),
         ]);
     }
@@ -173,8 +188,12 @@ class PosController extends Controller
         $validated = $request->validate([
             'customer_id' => 'nullable|exists:customers,id',
             'payment_method' => 'required|string|in:cash,bank_transfer',
-            'bank_account_id' => 'required_if:payment_method,bank_transfer|exists:bank_accounts,id',
+            'bank_account_id' => 'exclude_if:payment_method,cash|required|integer|exists:bank_accounts,id',
             'notes' => 'nullable|string',
+            'amount_paid' => 'nullable|numeric|min:0',
+            'discount_type' => 'nullable|string|in:percentage,nominal',
+            'discount_value' => 'nullable|numeric|min:0',
+            'discount_amount' => 'nullable|numeric|min:0',
         ]);
 
         $posCart = session('pos_cart', []);
@@ -184,6 +203,7 @@ class PosController extends Controller
         }
 
         $totalAmount = $this->cartTotal($posCart);
+        $discountAmount = (float) ($request->discount_amount ?? 0);
         $userId = auth()->id();
 
         $customerId = $request->customer_id;
@@ -195,14 +215,31 @@ class PosController extends Controller
             $customerId = $walkIn->id;
         }
 
+        $notes = $request->notes ?? '';
+        $notesParts = ['[POS]'];
+        if ($notes) {
+            $notesParts[] = $notes;
+        }
+        if ($discountAmount > 0) {
+            $discountLabel = $request->discount_type === 'percentage'
+                ? (float) $request->discount_value.'%'
+                : 'Rp '.number_format((int) $request->discount_value, 0, ',', '.');
+            $notesParts[] = 'Diskon: '.$discountLabel.' (Rp '.number_format((int) $discountAmount, 0, ',', '.').')';
+        }
+        if ($request->payment_method === 'cash' && $request->amount_paid) {
+            $notesParts[] = 'Bayar: Rp '.number_format((int) $request->amount_paid, 0, ',', '.');
+        }
+        $notesText = implode(' | ', $notesParts);
+
         $order = Order::create([
             'order_number' => 'POS-'.date('Ymd').'-'.strtoupper(Str::random(6)),
             'user_id' => $userId,
             'customer_id' => $customerId,
             'status' => 'completed',
             'total_amount' => $totalAmount,
+            'discount_amount' => $discountAmount,
             'shipping_address' => 'Pembelian di toko',
-            'notes' => $request->notes ? '[POS] '.$request->notes : 'Pembelian di toko',
+            'notes' => $notesText ?: 'Pembelian di toko',
             'payment_method' => $request->payment_method,
             'shipping_cost' => 0,
         ]);
@@ -247,6 +284,93 @@ class PosController extends Controller
         $order->load('items.product', 'customer', 'user');
 
         return view('admin.pos.receipt', compact('order'));
+    }
+
+    public function clearCart()
+    {
+        session()->forget('pos_cart');
+
+        return response()->json([
+            'success' => true,
+            'cart_html' => view('admin.pos._cart', ['posCart' => []])->render(),
+            'count' => 0,
+            'total' => 0,
+        ]);
+    }
+
+    public function customerAdd(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $customer = Customer::create([
+            'name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
+            'user_id' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'customer' => [
+                'id' => $customer->id,
+                'name' => $customer->name,
+                'phone' => $customer->phone,
+            ],
+        ]);
+    }
+
+    public function history()
+    {
+        $todayOrders = Order::where('order_number', 'like', 'POS-%')
+            ->whereDate('created_at', today())
+            ->with('customer:id,name')
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(fn ($o) => [
+                'id' => $o->id,
+                'order_number' => $o->order_number,
+                'customer_name' => $o->customer?->name ?? 'Walk-in',
+                'grand_total' => $o->grand_total,
+                'payment_method' => $o->payment_method,
+                'created_at' => $o->created_at->format('H:i'),
+            ]);
+
+        $html = view('admin.pos._history', ['orders' => $todayOrders])->render();
+
+        return response()->json([
+            'success' => true,
+            'html' => $html,
+            'count' => $todayOrders->count(),
+        ]);
+    }
+
+    public function skuAdd(Request $request)
+    {
+        $request->validate(['sku' => 'required|string']);
+
+        $product = Product::active()->where('sku', $request->sku)->first();
+
+        if (! $product) {
+            return response()->json([
+                'success' => false,
+                'message' => "Produk dengan SKU '{$request->sku}' tidak ditemukan",
+            ]);
+        }
+
+        if ($product->stock < 1) {
+            return response()->json([
+                'success' => false,
+                'message' => "Stok {$product->name} habis",
+            ]);
+        }
+
+        // Re-use add logic
+        $request->merge(['product_id' => $product->id, 'quantity' => 1]);
+
+        return $this->add($request);
     }
 
     protected function cartTotal(array $posCart): float

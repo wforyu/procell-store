@@ -87,6 +87,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/pos/add', [PosController::class, 'add'])->name('pos.add');
     Route::post('/pos/update', [PosController::class, 'update'])->name('pos.update');
     Route::post('/pos/remove', [PosController::class, 'remove'])->name('pos.remove');
+    Route::post('/pos/clear', [PosController::class, 'clearCart'])->name('pos.clear');
+    Route::post('/pos/sku-add', [PosController::class, 'skuAdd'])->name('pos.sku-add');
     Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
+    Route::post('/pos/customer-add', [PosController::class, 'customerAdd'])->name('pos.customer-add');
+    Route::get('/pos/history', [PosController::class, 'history'])->name('pos.history');
     Route::get('/pos/receipt/{order}', [PosController::class, 'receipt'])->name('pos.receipt');
 });

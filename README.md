@@ -35,7 +35,7 @@
 ### ⚙️ Admin Panel (Filament v5)
 - **Katalog**: CRUD Kategori & Produk
 - **Persediaan**: Audit stok, Pemasok, Purchase Order
-- **Transaksi**: **POS Interface**, CRUD Pesanan + Export CSV, Retur
+- **Transaksi**: **POS Interface** (diskon, customer cepat, riwayat hari ini, qty langsung, shortcut keyboard, virtual numpad) + CRUD Pesanan + Export CSV, Retur
 - **Konten**: Banner slider, Pengeluaran
 - **Pelanggan**: Read-only + riwayat pesanan
 - **Promo**: Kupon diskon
@@ -124,6 +124,7 @@ Semua test menggunakan SQLite `:memory:` — aman dijalankan kapan saja.
 | Duplicate `@php` block tidak dikompilasi | Gabung ke satu blok `@php` |
 | JSON-LD `{}` konflik Livewire Blade | Gunakan `json_encode()` dalam `@php` |
 | `config:cache` override env phpunit.xml | Selalu `config:clear` sebelum test |
+| `payment_method` hanya tampil `-` selain `bank_transfer` di admin | Tambah `'cash' => 'Tunai'` dan `'midtrans' => 'Midtrans'` di tabel & export |
 
 ---
 
@@ -132,10 +133,10 @@ Semua test menggunakan SQLite `:memory:` — aman dijalankan kapan saja.
 - [x] Konfigurasi SMTP di ManageSettings
 - [x] Integrasi RajaOngkir ongkir realtime
 - [x] Multi-admin & roles (Spatie Permission)
-- [ ] Loyalty points & referral system
+- [x] Loyalty points & referral system
 - [x] Guest checkout
 - [x] Integrasi Midtrans payment gateway
-- [ ] Notifikasi WhatsApp
+- [x] Notifikasi WhatsApp
 
 ---
 

@@ -7,6 +7,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Filament\Support\RawJs;
 
 class CouponForm
 {
@@ -33,23 +34,29 @@ class CouponForm
                     ->label('Nilai Diskon')
                     ->helperText('Nilai diskon (dalam Rupiah jika Fixed, dalam persen jika Percentage)')
                     ->required()
-                    ->numeric()
-                    ->default(0)
-                    ->prefix('Rp'),
+                    ->default('0')
+                    ->prefix('Rp')
+                    ->mask(RawJs::make('(function(){var d=$input.replace(/\D/g,\'\');if(!d)return\'\';var p=[],r=d.length;while(r>0){var t=r>3?3:r;p.unshift(\'9\'.repeat(t));r-=t}return p.join(\'.\')})()'))
+                    ->mutateDehydratedStateUsing(fn ($state) => $state ? (int) str_replace('.', '', $state) : 0)
+                    ->afterStateHydrated(fn (TextInput $component, $state) => $component->state($state ? number_format((int) $state, 0, ',', '.') : '0')),
                 TextInput::make('min_order')
                     ->label('Min. Belanja')
                     ->helperText('Minimal belanja agar kupon bisa digunakan (0 = tanpa minimal)')
                     ->required()
-                    ->numeric()
-                    ->default(0)
-                    ->prefix('Rp'),
+                    ->default('0')
+                    ->prefix('Rp')
+                    ->mask(RawJs::make('(function(){var d=$input.replace(/\D/g,\'\');if(!d)return\'\';var p=[],r=d.length;while(r>0){var t=r>3?3:r;p.unshift(\'9\'.repeat(t));r-=t}return p.join(\'.\')})()'))
+                    ->mutateDehydratedStateUsing(fn ($state) => $state ? (int) str_replace('.', '', $state) : 0)
+                    ->afterStateHydrated(fn (TextInput $component, $state) => $component->state($state ? number_format((int) $state, 0, ',', '.') : '0')),
                 TextInput::make('max_discount')
                     ->label('Maks. Diskon')
                     ->helperText('Maksimal diskon untuk tipe Percentage (biarkan kosong jika tanpa batas)')
-                    ->numeric()
                     ->nullable()
                     ->default(null)
-                    ->prefix('Rp'),
+                    ->prefix('Rp')
+                    ->mask(RawJs::make('(function(){var d=$input.replace(/\D/g,\'\');if(!d)return\'\';var p=[],r=d.length;while(r>0){var t=r>3?3:r;p.unshift(\'9\'.repeat(t));r-=t}return p.join(\'.\')})()'))
+                    ->mutateDehydratedStateUsing(fn ($state) => $state ? (int) str_replace('.', '', $state) : null)
+                    ->afterStateHydrated(fn (TextInput $component, $state) => $component->state($state ? number_format((int) $state, 0, ',', '.') : null)),
                 DateTimePicker::make('starts_at')
                     ->label('Mulai Berlaku')
                     ->helperText('Tanggal mulai berlaku kupon')

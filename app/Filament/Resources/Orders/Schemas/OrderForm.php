@@ -8,6 +8,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Filament\Support\RawJs;
 
 class OrderForm
 {
@@ -39,16 +40,20 @@ class OrderForm
                     ->label('Total Produk')
                     ->helperText('Total harga seluruh item (belum termasuk ongkir)')
                     ->required()
-                    ->numeric()
-                    ->default(0.0)
+                    ->default('0')
                     ->prefix('Rp')
+                    ->mask(RawJs::make('(function(){var d=$input.replace(/\D/g,\'\');if(!d)return\'\';var p=[],r=d.length;while(r>0){var t=r>3?3:r;p.unshift(\'9\'.repeat(t));r-=t}return p.join(\'.\')})()'))
+                    ->mutateDehydratedStateUsing(fn ($state) => $state ? (int) str_replace('.', '', $state) : 0)
+                    ->afterStateHydrated(fn (TextInput $component, $state) => $component->state($state ? number_format((int) $state, 0, ',', '.') : '0'))
                     ->columnSpan(1),
                 TextInput::make('shipping_cost')
                     ->label('Ongkos Kirim')
                     ->helperText('Biaya pengiriman yang dibebankan ke pelanggan')
-                    ->numeric()
-                    ->default(0)
+                    ->default('0')
                     ->prefix('Rp')
+                    ->mask(RawJs::make('(function(){var d=$input.replace(/\D/g,\'\');if(!d)return\'\';var p=[],r=d.length;while(r>0){var t=r>3?3:r;p.unshift(\'9\'.repeat(t));r-=t}return p.join(\'.\')})()'))
+                    ->mutateDehydratedStateUsing(fn ($state) => $state ? (int) str_replace('.', '', $state) : 0)
+                    ->afterStateHydrated(fn (TextInput $component, $state) => $component->state($state ? number_format((int) $state, 0, ',', '.') : '0'))
                     ->columnSpan(1),
                 Textarea::make('shipping_address')
                     ->label('Alamat Pengiriman')

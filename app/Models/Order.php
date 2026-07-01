@@ -29,6 +29,7 @@ class Order extends Model
         'points_earned',
         'midtrans_transaction_id',
         'midtrans_payment_type',
+        'received_at',
     ];
 
     protected function casts(): array
