@@ -2,6 +2,9 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\RevenueChartWidget;
+use App\Filament\Widgets\StatsOverviewWidget;
+use App\Filament\Widgets\StockMovementChartWidget;
 use BackedEnum;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
@@ -21,6 +24,15 @@ class Dashboard extends \Filament\Pages\Dashboard
     public static function getNavigationItems(array $urlParameters = []): array
     {
         return array_map(fn ($item) => $item->extraAttributes(['title' => 'Ringkasan penjualan dan statistik toko']), parent::getNavigationItems($urlParameters));
+    }
+
+    public function getWidgets(): array
+    {
+        return [
+            StatsOverviewWidget::class,
+            RevenueChartWidget::class,
+            StockMovementChartWidget::class,
+        ];
     }
 
     public function getWidgetsContentComponent(): Component
