@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\LowStockTableWidget;
 use App\Filament\Widgets\RevenueChartWidget;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Filament\Widgets\StockMovementChartWidget;
@@ -32,6 +33,7 @@ class Dashboard extends \Filament\Pages\Dashboard
             StatsOverviewWidget::class,
             RevenueChartWidget::class,
             StockMovementChartWidget::class,
+            LowStockTableWidget::class,
         ];
     }
 
