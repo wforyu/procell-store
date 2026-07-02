@@ -367,6 +367,7 @@
                             <div class="text-right">
                                 <span class="font-medium" x-text="shipping > 0 ? 'Rp ' + new Intl.NumberFormat('id-ID').format(shipping) : (selectedCourier ? 'Pilih layanan' : 'Belum dipilih')"></span>
                                 <button @click.prevent="fetchRates()" type="button"
+                                        x-show="rajaOngkirConfigured"
                                         class="block mt-1 text-xs text-amber-600 hover:text-amber-700"
                                         x-bind:disabled="loadingRates">
                                     <span x-show="!loadingRates"><i class="fas fa-sync-alt"></i> Cek Ongkir</span>
