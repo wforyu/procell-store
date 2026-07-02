@@ -3,9 +3,12 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\LowStockTableWidget;
+use App\Filament\Widgets\LoyalCustomersTableWidget;
 use App\Filament\Widgets\RevenueChartWidget;
+use App\Filament\Widgets\SlowMovingProductsTableWidget;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Filament\Widgets\StockMovementChartWidget;
+use App\Filament\Widgets\TopProductsTableWidget;
 use BackedEnum;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
@@ -33,6 +36,9 @@ class Dashboard extends \Filament\Pages\Dashboard
             StatsOverviewWidget::class,
             RevenueChartWidget::class,
             StockMovementChartWidget::class,
+            TopProductsTableWidget::class,
+            SlowMovingProductsTableWidget::class,
+            LoyalCustomersTableWidget::class,
             LowStockTableWidget::class,
         ];
     }

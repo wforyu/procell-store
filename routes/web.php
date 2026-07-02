@@ -4,7 +4,9 @@ use App\Http\Controllers\Admin\ExportController;
 use App\Http\Controllers\Admin\PosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Store\CartController;
+use App\Http\Controllers\Store\ChatController;
 use App\Http\Controllers\Store\CheckoutController;
+use App\Http\Controllers\Store\CompareController;
 use App\Http\Controllers\Store\CouponController;
 use App\Http\Controllers\Store\HomeController;
 use App\Http\Controllers\Store\MidtransController;
@@ -22,7 +24,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/products/search/suggestions', [ProductController::class, 'searchSuggestions'])->name('products.suggestions');
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
+
+Route::get('/compare', [CompareController::class, 'index'])->name('compare.index');
+Route::post('/compare/toggle/{product}', [CompareController::class, 'toggle'])->name('compare.toggle');
+Route::post('/compare/remove/{product}', [CompareController::class, 'remove'])->name('compare.remove');
+Route::post('/compare/clear', [CompareController::class, 'clear'])->name('compare.clear');
 Route::get('/categories/{slug}', [ProductController::class, 'byCategory'])->name('products.category');
 
 Route::get('/page/{slug}', [PageController::class, 'show'])->name('page.show');
@@ -68,6 +76,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/toggle/{product}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('/chat/start', [ChatController::class, 'store'])->name('chat.store');
+    Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
+    Route::post('/chat/{conversation}/send', [ChatController::class, 'send'])->name('chat.send');
+    Route::get('/chat/{conversation}/poll', [ChatController::class, 'poll'])->name('chat.poll');
+
     Route::post('/products/{product}/quick-buy', [ProductController::class, 'quickBuy'])->name('products.quick-buy');
 
     Route::get('/dashboard', function () {
@@ -81,6 +95,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('export/orders/csv', [ExportController::class, 'ordersCsv'])->name('export.orders.csv');
     Route::get('export/products/csv', [ExportController::class, 'productsCsv'])->name('export.products.csv');
     Route::get('export/suppliers/csv', [ExportController::class, 'suppliersCsv'])->name('export.suppliers.csv');
+    Route::get('reports/profit-loss/csv', [ExportController::class, 'profitLossCsv'])->name('reports.profit-loss.csv');
 
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::get('/pos/search', [PosController::class, 'search'])->name('pos.search');
@@ -93,4 +108,5 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/pos/customer-add', [PosController::class, 'customerAdd'])->name('pos.customer-add');
     Route::get('/pos/history', [PosController::class, 'history'])->name('pos.history');
     Route::get('/pos/receipt/{order}', [PosController::class, 'receipt'])->name('pos.receipt');
+    Route::get('/backup/download/{filename}', [ExportController::class, 'downloadBackup'])->name('backup.download');
 });

@@ -2,11 +2,24 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Store\CompareController;
+use App\Models\BankAccount;
+use App\Models\Banner;
 use App\Models\Cart;
+use App\Models\Category;
+use App\Models\Coupon;
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\Page;
+use App\Models\Product;
+use App\Models\PurchaseOrder;
+use App\Models\Refund;
+use App\Models\Returns;
 use App\Models\Setting;
+use App\Models\Supplier;
 use App\Observers\OrderObserver;
+use App\Services\AdminActivityLogger;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -16,6 +29,15 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
+    }
+
+    protected function logAdminActivity(string $action, Model $model): void
+    {
+        if (! auth()->check() || ! auth()->user()->is_admin) {
+            return;
+        }
+
+        AdminActivityLogger::{$action}($model);
     }
 
     public function boot(): void
@@ -40,6 +62,18 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
+        $adminModels = [
+            BankAccount::class, Banner::class, Category::class, Coupon::class,
+            Expense::class, Product::class, PurchaseOrder::class, Supplier::class,
+            Refund::class, Returns::class,
+        ];
+
+        foreach ($adminModels as $modelClass) {
+            $modelClass::created(fn (Model $model) => $this->logAdminActivity('created', $model));
+            $modelClass::updated(fn (Model $model) => $this->logAdminActivity('updated', $model));
+            $modelClass::deleted(fn (Model $model) => $this->logAdminActivity('deleted', $model));
+        }
+
         View::composer('*', function ($view) {
             $count = 0;
             if (auth()->check()) {
@@ -50,6 +84,7 @@ class AppServiceProvider extends ServiceProvider
                 $count = $cart ? $cart->items_count : 0;
             }
             $view->with('cartCount', $count);
+            $view->with('compareCount', count(session()->get(CompareController::SESSION_KEY, [])));
         });
 
         View::composer('layouts.app', function ($view) {

@@ -129,6 +129,15 @@
                     <a href="{{ route('wishlist.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 font-medium transition-colors">
                         <i class="fas fa-heart w-5 text-center text-red-400"></i> Wishlist
                     </a>
+                    <a href="{{ route('chat.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 font-medium transition-colors">
+                        <i class="fas fa-comment-dots w-5 text-center text-amber-400"></i> Chat
+                    </a>
+                    <a href="{{ route('compare.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-700 hover:bg-amber-50 hover:text-amber-600 font-medium transition-colors">
+                        <i class="fas fa-scale-balanced w-5 text-center text-amber-400"></i> Bandingkan
+                        @if($compareCount > 0)
+                            <span class="ml-auto bg-amber-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">{{ $compareCount }}</span>
+                        @endif
+                    </a>
                 @endauth
             </div>
         </nav>
@@ -158,7 +167,17 @@
                     @auth
                         <a href="{{ route('orders.index') }}" class="hover:text-amber-400 transition-colors flex items-center gap-1"><i class="fas fa-box"></i> <span class="hidden sm:inline">Pesanan</span></a>
                         <span class="text-gray-600">|</span>
+                        <a href="{{ route('chat.index') }}" class="hover:text-amber-400 transition-colors flex items-center gap-1"><i class="fas fa-comment-dots"></i> <span class="hidden sm:inline">Chat</span></a>
+                        <span class="text-gray-600">|</span>
                         <a href="{{ route('wishlist.index') }}" class="hover:text-amber-400 transition-colors flex items-center gap-1"><i class="fas fa-heart"></i> <span class="hidden sm:inline">Wishlist</span></a>
+                        <span class="text-gray-600">|</span>
+                        <a href="{{ route('compare.index') }}" class="hover:text-amber-400 transition-colors flex items-center gap-1 relative">
+                            <i class="fas fa-scale-balanced"></i>
+                            <span class="hidden sm:inline">Bandingkan</span>
+                            @if($compareCount > 0)
+                                <span class="absolute -top-2 -right-2 w-4 h-4 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ $compareCount }}</span>
+                            @endif
+                        </a>
                         <span class="text-gray-600">|</span>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
@@ -192,8 +211,27 @@
                         </div>
                     </a>
 
-                    {{-- Search Bar --}}
-                    <div class="flex-1 max-w-2xl mx-auto" x-data="{ query: '{{ request('q') }}' }">
+                    {{-- Search Bar with Live Suggestions --}}
+                    <div class="flex-1 max-w-2xl mx-auto relative" x-data="{
+                        query: '{{ request('q') }}',
+                        suggestions: [],
+                        show: false,
+                        loading: false,
+                        timer: null,
+                        async fetch() {
+                            if (this.query.length < 2) { this.suggestions = []; this.show = false; return; }
+                            this.loading = true;
+                            try {
+                                const res = await fetch('{{ route('products.suggestions') }}?q=' + encodeURIComponent(this.query));
+                                this.suggestions = await res.json();
+                                this.show = this.suggestions.length > 0;
+                            } catch(e) {}
+                            this.loading = false;
+                        },
+                        select(slug) {
+                            window.location.href = '{{ url('products') }}/' + slug;
+                        }
+                    }">
                         <form action="{{ route('products.index') }}" method="GET" class="relative">
                             <div class="flex">
                                 <div class="relative flex-1">
@@ -201,11 +239,17 @@
                                         type="text"
                                         name="q"
                                         x-model="query"
+                                        @input="clearTimeout(timer); timer = setTimeout(() => fetch(), 300)"
+                                        @focus="if (suggestions.length) show = true"
+                                        @click.away="show = false"
+                                        @keydown.escape="show = false"
+                                        @keydown.down.prevent="$focus($el.parentElement.nextElementSibling?.querySelector('button'))"
                                         placeholder="Cari LCD, baterai, charger..."
                                         class="w-full h-10 md:h-12 pl-4 pr-10 border-2 border-gray-200 rounded-l-xl focus:border-amber-500 focus:ring-0 text-sm outline-none transition-colors"
                                         value="{{ request('q') }}"
+                                        autocomplete="off"
                                     >
-                                    <button type="button" x-show="query.length > 0" @click="query = ''; $el.closest('form').querySelector('input[name=q]').value = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <button type="button" x-show="query.length > 0" @click="query = ''; suggestions = []; show = false; $el.closest('form').querySelector('input[name=q]').value = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                         <i class="fas fa-times text-sm"></i>
                                     </button>
                                 </div>
@@ -215,6 +259,32 @@
                                 </button>
                             </div>
                         </form>
+
+                        {{-- Suggestions Dropdown --}}
+                        <div x-show="show" x-cloak
+                             @keydown.down.prevent="$el.querySelector('button')?.focus()"
+                             @keydown.up.prevent="if ($el.previousElementSibling?.querySelector('input')) $el.previousElementSibling.querySelector('input').focus()"
+                             class="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl max-h-80 overflow-y-auto">
+                            <template x-for="(p, i) in suggestions" :key="p.slug">
+                                <button type="button" @click="select(p.slug)"
+                                        @keydown.down.prevent="$el.nextElementSibling?.querySelector('button')?.focus()"
+                                        @keydown.up.prevent="if ($el.previousElementSibling?.querySelector('button')) { $el.previousElementSibling.querySelector('button').focus() } else { $el.closest('[x-data]').querySelector('input').focus() }"
+                                        class="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-amber-50 border-b border-gray-50 last:border-0 transition-colors">
+                                    <div class="w-10 h-10 bg-gray-50 rounded-lg overflow-hidden flex-shrink-0">
+                                        <img :src="p.image" :alt="p.name" class="w-full h-full object-contain p-1"
+                                             x-bind:src="p.image || '{{ asset('images/no-image.png') }}'">
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900 truncate" x-text="p.name"></p>
+                                        <p class="text-xs text-gray-400" x-text="p.brand"></p>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <p class="text-sm font-bold text-amber-600" x-text="p.price_formatted"></p>
+                                        <p class="text-xs" x-show="p.stock <= 0" x-text="'Stok Habis'"></p>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
                     </div>
 
                     {{-- Right Actions --}}
@@ -252,6 +322,15 @@
                                     </a>
                                     <a href="{{ route('wishlist.index') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">
                                         <i class="fas fa-heart w-4 text-center text-red-400"></i> Wishlist
+                                    </a>
+                                    <a href="{{ route('chat.index') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">
+                                        <i class="fas fa-comment-dots w-4 text-center text-amber-400"></i> Chat
+                                    </a>
+                                    <a href="{{ route('compare.index') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">
+                                        <i class="fas fa-scale-balanced w-4 text-center text-amber-400"></i> Bandingkan
+                                        @if($compareCount > 0)
+                                            <span class="ml-auto bg-amber-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">{{ $compareCount }}</span>
+                                        @endif
                                     </a>
                                     <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">
                                         <i class="fas fa-user-cog w-4 text-center text-gray-400"></i> Profil

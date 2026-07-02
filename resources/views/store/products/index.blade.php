@@ -206,20 +206,28 @@
                                     </div>
                                 </div>
                             </a>
-                            <div class="px-3 md:px-4 pb-3 md:pb-4">
-                                @if($product->stock > 0)
-                                    <form action="{{ route('cart.add', $product) }}" method="POST">
+                            <div class="px-3 md:px-4 pb-3 md:pb-4 space-y-2">
+                                <div class="flex gap-2">
+                                    <form action="{{ route('compare.toggle', $product) }}" method="POST" class="flex-1">
                                         @csrf
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="w-full text-sm bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-                                            <i class="fas fa-shopping-cart text-xs"></i> + Keranjang
+                                        <button type="submit" class="w-full text-xs border border-gray-200 text-gray-500 hover:border-amber-300 hover:text-amber-600 py-1.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-1">
+                                            <i class="fas fa-scale-balanced"></i> Bandingkan
                                         </button>
                                     </form>
-                                @else
-                                    <button disabled class="w-full text-sm bg-gray-100 text-gray-400 py-2 rounded-lg font-medium cursor-not-allowed flex items-center justify-center gap-2">
-                                        <i class="fas fa-times-circle text-xs"></i> Stok Habis
-                                    </button>
-                                @endif
+                                    @if($product->stock > 0)
+                                        <form action="{{ route('cart.add', $product) }}" method="POST" class="flex-[2]">
+                                            @csrf
+                                            <input type="hidden" name="quantity" value="1">
+                                            <button type="submit" class="w-full text-sm bg-amber-500 hover:bg-amber-600 text-white py-1.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                                                <i class="fas fa-shopping-cart text-xs"></i> + Keranjang
+                                            </button>
+                                        </form>
+                                    @else
+                                        <button disabled class="flex-[2] w-full text-sm bg-gray-100 text-gray-400 py-1.5 rounded-lg font-medium cursor-not-allowed flex items-center justify-center gap-2">
+                                            <i class="fas fa-times-circle text-xs"></i> Stok Habis
+                                        </button>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @endforeach

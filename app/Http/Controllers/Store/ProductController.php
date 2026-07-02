@@ -83,7 +83,20 @@ class ProductController extends Controller
             ->take(4)
             ->get();
 
-        return view('store.products.show', compact('product', 'relatedProducts'));
+        $frequentlyBoughtTogether = Product::active()
+            ->where('id', '!=', $product->id)
+            ->whereIn('id', function ($q) use ($product) {
+                $q->select('oi2.product_id')
+                    ->from('order_items', 'oi1')
+                    ->join('order_items as oi2', 'oi1.order_id', '=', 'oi2.order_id')
+                    ->where('oi1.product_id', $product->id)
+                    ->whereColumn('oi2.product_id', '!=', 'oi1.product_id');
+            })
+            ->with('primaryImage')
+            ->take(4)
+            ->get();
+
+        return view('store.products.show', compact('product', 'relatedProducts', 'frequentlyBoughtTogether'));
     }
 
     public function byCategory($slug)
@@ -97,6 +110,35 @@ class ProductController extends Controller
         $brands = Product::active()->select('brand')->distinct()->orderBy('brand')->pluck('brand');
 
         return view('store.products.index', compact('products', 'categories', 'category', 'brands'));
+    }
+
+    public function searchSuggestions(Request $request)
+    {
+        $q = $request->input('q');
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        $products = Product::active()
+            ->with('primaryImage')
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                    ->orWhere('brand', 'like', "%{$q}%")
+                    ->orWhere('sku', 'like', "%{$q}%");
+            })
+            ->take(8)
+            ->get()
+            ->map(fn ($p) => [
+                'slug' => $p->slug,
+                'name' => $p->name,
+                'price' => $p->selling_price,
+                'price_formatted' => 'Rp '.number_format($p->selling_price, 0, ',', '.'),
+                'image' => $p->imageUrl,
+                'stock' => $p->stock,
+                'brand' => $p->brand,
+            ]);
+
+        return response()->json($products);
     }
 
     public function quickBuy(Product $product)

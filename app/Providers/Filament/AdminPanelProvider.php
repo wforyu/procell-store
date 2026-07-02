@@ -2,8 +2,11 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\BroadcastPage;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\DatabaseBackupPage;
 use App\Filament\Pages\ManageSettings;
+use App\Filament\Pages\ProfitLossReport;
 use App\Filament\Widgets\RevenueChartWidget;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Filament\Widgets\StockMovementChartWidget;
@@ -345,7 +348,11 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()
                     ->label('Konten'),
                 NavigationGroup::make()
+                    ->label('Laporan'),
+                NavigationGroup::make()
                     ->label('Pengaturan'),
+                NavigationGroup::make()
+                    ->label('Layanan Pelanggan'),
                 NavigationGroup::make()
                     ->label('Sistem'),
             ])
@@ -360,6 +367,9 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
                 ManageSettings::class,
+                ProfitLossReport::class,
+                DatabaseBackupPage::class,
+                BroadcastPage::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([

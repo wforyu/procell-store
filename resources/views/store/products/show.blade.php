@@ -188,6 +188,13 @@
                                 <span>Simpan</span>
                             </button>
                         @endauth
+                        <form action="{{ route('compare.toggle', $product) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="flex items-center gap-2 px-4 py-2.5 border-2 border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:border-amber-200 hover:text-amber-600 hover:bg-amber-50 transition-all">
+                                <i class="fas fa-scale-balanced"></i>
+                                <span>Bandingkan</span>
+                            </button>
+                        </form>
                         <form action="{{ route('products.quick-buy', $product) }}" method="POST" class="flex-1">
                             @csrf
                             <button type="submit" class="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-semibold transition-all shadow-lg shadow-green-600/25">
@@ -310,6 +317,53 @@
             @endif
         </div>
     </div>
+
+    {{-- Frequently Bought Together --}}
+    @if($frequentlyBoughtTogether->count() > 0)
+        <div class="mt-10 md:mt-12">
+            <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-100 p-6 md:p-8">
+                <h2 class="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                    <i class="fas fa-shopping-bag text-amber-500"></i> Sering Dibeli Bersamaan
+                </h2>
+                <p class="text-sm text-gray-500 mb-6">Pelanggan yang membeli <strong>{{ $product->name }}</strong> juga membeli produk berikut</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                    @foreach($frequentlyBoughtTogether as $related)
+                        <div class="product-card bg-white">
+                            <a href="{{ route('products.show', $related->slug) }}" class="block">
+                                <div class="relative aspect-square bg-gray-50 overflow-hidden">
+                                    @if($related->imageUrl)
+                                        <img src="{{ $related->imageUrl }}" class="w-full h-full object-contain p-4 hover:scale-105 transition-transform duration-500" loading="lazy">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center"><i class="fas fa-mobile-screen text-4xl text-gray-200"></i></div>
+                                    @endif
+                                </div>
+                                <div class="p-3 md:p-4">
+                                    <h3 class="text-sm font-medium text-gray-900 line-clamp-2">{{ $related->name }}</h3>
+                                    <p class="text-base md:text-lg font-bold text-amber-600 mt-2">
+                                        @if($related->is_promo)
+                                            <span class="line-through text-gray-400 text-sm font-normal">Rp {{ number_format($related->selling_price, 0, ',', '.') }}</span>
+                                            Rp {{ number_format($related->promo_price, 0, ',', '.') }}
+                                        @else
+                                            Rp {{ number_format($related->selling_price, 0, ',', '.') }}
+                                        @endif
+                                    </p>
+                                </div>
+                            </a>
+                            <div class="px-3 md:px-4 pb-3 md:pb-4">
+                                <form action="{{ route('cart.add', $related) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="w-full text-sm border-2 border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2">
+                                        <i class="fas fa-shopping-cart text-xs"></i> + Keranjang
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
 
     {{-- Related Products --}}
     @if($relatedProducts->count() > 0)
