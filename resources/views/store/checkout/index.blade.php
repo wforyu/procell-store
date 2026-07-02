@@ -76,11 +76,57 @@
                             <input type="text" value="{{ auth()->user()->phone ?? '-' }}" readonly class="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 text-gray-500 text-sm">
                         </div>
                         @endif
-                        <div>
-                            <label for="destination_city" class="block text-sm font-medium text-gray-700 mb-1.5">ID Kota Tujuan <span class="text-xs text-gray-400">(RajaOngkir)</span></label>
-                            <input type="number" name="destination_city" id="destination_city" min="1"
-                                   class="input-field" placeholder="Contoh: 152 (Jakpus)"
-                                   value="{{ old('destination_city') }}">
+                        @php $citiesJson = json_encode($cities); @endphp
+                        <div x-data="{
+                            open: false,
+                            search: '',
+                            selectedId: {{ old('destination_city') ?: 'null' }},
+                            selectedName: '{{ collect($cities)->firstWhere('id', old('destination_city'))['name'] ?? '' }}',
+                            filteredCities: {{ $citiesJson }},
+                            get filtered() {
+                                if (!this.search) return this.filteredCities;
+                                const q = this.search.toLowerCase();
+                                return this.filteredCities.filter(c =>
+                                    c.name.toLowerCase().includes(q) || c.province.toLowerCase().includes(q)
+                                );
+                            },
+                            select(c) {
+                                this.selectedId = c.id;
+                                this.selectedName = c.name;
+                                this.search = c.name;
+                                this.open = false;
+                                document.getElementById('destination_city').value = c.id;
+                                document.getElementById('destination_city').dispatchEvent(new Event('input'));
+                            }
+                        }">
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Kota Tujuan <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <input type="text" x-model="search"
+                                       @focus="open = true; search = selectedName"
+                                       @click.away="open = false; if(!selectedId) { search = ''; } else { search = selectedName; }"
+                                       @keydown.escape="open = false"
+                                       @input="open = true"
+                                       class="input-field"
+                                       placeholder="Cari kota tujuan..."
+                                       autocomplete="off">
+                                <input type="hidden" name="destination_city" id="destination_city"
+                                       x-bind:value="selectedId" value="{{ old('destination_city') }}">
+                                <div x-show="open && filtered.length > 0" x-cloak
+                                     class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                    <template x-for="c in filtered" :key="c.id">
+                                        <button type="button" @click.prevent="select(c)"
+                                                class="w-full text-left px-4 py-2.5 text-sm hover:bg-amber-50 hover:text-amber-700 border-b border-gray-50 last:border-0 flex items-center justify-between"
+                                                :class="selectedId === c.id ? 'bg-amber-50 text-amber-700 font-medium' : 'text-gray-700'">
+                                            <span x-text="c.name"></span>
+                                            <span class="text-xs text-gray-400" x-text="c.province"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                                <div x-show="open && filtered.length === 0" x-cloak
+                                     class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-center text-sm text-gray-400">
+                                    Kota tidak ditemukan
+                                </div>
+                            </div>
                             @error('destination_city') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div class="md:col-span-2">
@@ -321,7 +367,6 @@
                             <div class="text-right">
                                 <span class="font-medium" x-text="shipping > 0 ? 'Rp ' + new Intl.NumberFormat('id-ID').format(shipping) : (selectedCourier ? 'Pilih layanan' : 'Belum dipilih')"></span>
                                 <button @click.prevent="fetchRates()" type="button"
-                                        x-show="rajaOngkirConfigured"
                                         class="block mt-1 text-xs text-amber-600 hover:text-amber-700"
                                         x-bind:disabled="loadingRates">
                                     <span x-show="!loadingRates"><i class="fas fa-sync-alt"></i> Cek Ongkir</span>

@@ -60,7 +60,10 @@ class CheckoutController extends Controller
             $maxRedeemPoints = min($pointsBalance, (int) floor(($cart->total * 0.5) / $loyalty->getRedeemRate()));
         }
 
-        return view('store.checkout.index', compact('cart', 'bankAccounts', 'couriers', 'appliedCoupon', 'rajaOngkirConfigured', 'totalWeight', 'isGuest', 'loyalty', 'pointsBalance', 'maxRedeemPoints'));
+        $rajaOngkir = app(RajaOngkirService::class);
+        $cities = $rajaOngkir->getCities();
+
+        return view('store.checkout.index', compact('cart', 'bankAccounts', 'couriers', 'appliedCoupon', 'rajaOngkirConfigured', 'totalWeight', 'isGuest', 'loyalty', 'pointsBalance', 'maxRedeemPoints', 'cities'));
     }
 
     public function courierRates(Request $request, RajaOngkirService $rajaOngkir)
